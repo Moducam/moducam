@@ -1,5 +1,5 @@
 import av
-import cv2
+#import cv2
 
 dicOption={'rtsp_transport':'tcp'}
 video = av.open('***REMOVED***', 'r', options=dicOption)
@@ -14,18 +14,23 @@ try:
 
         for frame in packet.decode():
             print(frame)
-            img = frame.to_ndarray(format='bgr24')
-            cv2.imshow("Video", img)
+            img = frame.to_ndarray(format='rgb24')
+            #cv2.imshow("Video", img)
+            
+            x, y = 1046, 425
+            pixel_value = img[y, x]
+
+            print(pixel_value, img.shape)
 
         packet.stream = out_stream
 
         output.mux(packet)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        #if cv2.waitKey(1) & 0xFF == ord('q'):
+            #break
         
 except KeyboardInterrupt:
     pass
 
 output.close()
-cv2.destroyAllWindows()
+#cv2.destroyAllWindows()
