@@ -30,26 +30,27 @@ try:
             if img_last is not None:
                 for y in range(0, len(img), 20):
                     for x in range(0, len(img[0]), 20):
-                        if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > 20:
+                        if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > 30:
                             for k in range(0, 3):
                                 for l in range(0, 3):
                                     img_draw[y+k, x+l] = [0, 0, 255]
                             count += 1
             img_last = img
 
-            if count > 30 and not alarm:
-                alarm = True
-                print("Writing to file")
-                output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
-                out_stream = output.add_stream(template=in_stream)
-                base_timestamp = packet.pts
+            if count > 40:
                 frames_since_thresh = 0
+                if not alarm:
+                    alarm = True
+                    print("--- Writing to file")
+                    output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
+                    out_stream = output.add_stream(template=in_stream)
+                    base_timestamp = packet.pts
             else:
                 frames_since_thresh += 1
                 if alarm:
-                    if frames_since_thresh > 80 and alarm:
+                    if frames_since_thresh > 140 and alarm:
                         alarm = False
-                        print("Closing file")
+                        print("--- Closing file")
                         output.close()
                         base_timestamp = None 
 
