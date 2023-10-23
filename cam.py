@@ -1,5 +1,6 @@
 import av
 import cv2
+import configparser
 from datetime import datetime
 
 def grayscale(pxl):
@@ -8,66 +9,82 @@ def grayscale(pxl):
 def getOutFileName():
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-dicOption={'rtsp_transport':'tcp'}
-video = av.open('***REMOVED***', 'r', options=dicOption)
+def setConfigurations():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
-in_stream = video.streams.video[0]
+    global PIXEL_THRESHOLD, ALARM_THRESHOLD, FRAMES_AFTER_ALARM, BUFFER_SIZE
 
-output = None
-out_stream = None
-base_timestamp = None  # Stores the first timestamp when alarm triggers
+    PIXEL_THRESHOLD = int(config['VideoSettings']['pixel_threshold'])
+    ALARM_THRESHOLD = int(config['VideoSettings']['alarm_threshold'])
+    FRAMES_AFTER_ALARM = int(config['VideoSettings']['frames_after_alarm'])
+    BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
 
-alarm = False
-frames_since_thresh = 0
-img_last = None
-try:
-    for packet in video.demux(in_stream):
-        for frame in packet.decode():
-            img = frame.to_ndarray(format='bgr24')
+def main():
+    setConfigurations()
+    video = av.open('***REMOVED***', 'r', options={'rtsp_transport':'tcp'})
 
-            count = 0
-            img_draw = img.copy()
-            if img_last is not None:
-                for y in range(0, len(img), 20):
-                    for x in range(0, len(img[0]), 20):
-                        if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > 30:
-                            for k in range(0, 3):
-                                for l in range(0, 3):
-                                    img_draw[y+k, x+l] = [0, 0, 255]
-                            count += 1
-            img_last = img
+    in_stream = video.streams.video[0]
 
-            if count > 40:
-                frames_since_thresh = 0
-                if not alarm:
-                    alarm = True
-                    print("--- Writing to file")
-                    output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
-                    out_stream = output.add_stream(template=in_stream)
-                    base_timestamp = packet.pts
-            else:
-                frames_since_thresh += 1
-                if alarm:
-                    if frames_since_thresh > 140 and alarm:
-                        alarm = False
-                        print("--- Closing file")
-                        output.close()
-                        base_timestamp = None 
+    output = None
+    out_stream = None
+    base_timestamp = None  # Stores the first timestamp when alarm triggers
 
-            cv2.imshow("Video", img_draw)
-            print(count, "Alarm:", alarm)
+    alarm = False
+    frames_since_thresh = 0
+    img_last = None
 
-        if alarm:
-            if base_timestamp is not None:
-                packet.pts -= base_timestamp
-                packet.dts -= base_timestamp
-            packet.stream = out_stream
-            output.mux(packet)
+    try:
+        for packet in video.demux(in_stream):
+            for frame in packet.decode():
+                img = frame.to_ndarray(format='bgr24')
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        
-except KeyboardInterrupt:
-    pass
+                count = 0
+                img_draw = img.copy()
+                if img_last is not None:
+                    for y in range(0, len(img), 20):
+                        for x in range(0, len(img[0]), 20):
+                            if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > PIXEL_THRESHOLD:
+                                for k in range(0, 3):
+                                    for l in range(0, 3):
+                                        img_draw[y+k, x+l] = [0, 0, 255]
+                                count += 1
+                img_last = img
 
-cv2.destroyAllWindows()
+                if count > ALARM_THRESHOLD:
+                    frames_since_thresh = 0
+                    if not alarm:
+                        alarm = True
+                        print("--- Writing to file")
+                        output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
+                        out_stream = output.add_stream(template=in_stream)
+                        base_timestamp = packet.pts
+                else:
+                    frames_since_thresh += 1
+                    if alarm:
+                        if frames_since_thresh > FRAMES_AFTER_ALARM and alarm:
+                            alarm = False
+                            print("--- Closing file")
+                            output.close()
+                            base_timestamp = None 
+
+                cv2.imshow("Video", img_draw)
+                print(count, "Alarm:", alarm)
+
+            if alarm:
+                if base_timestamp is not None:
+                    packet.pts -= base_timestamp
+                    packet.dts -= base_timestamp
+                packet.stream = out_stream
+                output.mux(packet)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            
+    except KeyboardInterrupt:
+        pass
+
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
