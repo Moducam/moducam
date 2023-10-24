@@ -13,16 +13,18 @@ def setConfigurations():
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    global PIXEL_THRESHOLD, ALARM_THRESHOLD, FRAMES_AFTER_ALARM, BUFFER_SIZE
+    global CAMERA_PATH, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, FRAMES_AFTER_ALARM, BUFFER_SIZE
 
-    PIXEL_THRESHOLD = int(config['VideoSettings']['pixel_threshold'])
-    ALARM_THRESHOLD = int(config['VideoSettings']['alarm_threshold'])
+    CAMERA_PATH = config['Camera']['camera_path']
+    PIXEL_THRESHOLD = int(config['MotionSettings']['pixel_threshold'])
+    ALARM_THRESHOLD = int(config['MotionSettings']['alarm_threshold'])
+    PIXEL_STEP = int(config['MotionSettings']['pixel_step'])
     FRAMES_AFTER_ALARM = int(config['VideoSettings']['frames_after_alarm'])
     BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
 
 def main():
     setConfigurations()
-    video = av.open('rtsp://admin:penelope0903c@127.0.0.1:5540/cam/realmonitor?channel=1&subtype=0', 'r', options={'rtsp_transport':'tcp'})
+    video = av.open(CAMERA_PATH, 'r', options={'rtsp_transport':'tcp'})
 
     in_stream = video.streams.video[0]
 
@@ -42,8 +44,8 @@ def main():
                 count = 0
                 img_draw = img.copy()
                 if img_last is not None:
-                    for y in range(0, len(img), 20):
-                        for x in range(0, len(img[0]), 20):
+                    for y in range(0, len(img), PIXEL_STEP):
+                        for x in range(0, len(img[0]), PIXEL_STEP):
                             if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > PIXEL_THRESHOLD:
                                 for k in range(0, 3):
                                     for l in range(0, 3):
