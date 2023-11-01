@@ -1,6 +1,7 @@
 import av
 import cv2
 import configparser
+import collections
 from datetime import datetime
 
 def grayscale(pxl):
@@ -36,6 +37,8 @@ def main():
     frames_since_thresh = 0
     img_last = None
 
+    buffer = collections.deque()
+
     try:
         for packet in video.demux(in_stream):
             for frame in packet.decode():
@@ -60,7 +63,20 @@ def main():
                         print("--- Writing to file")
                         output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
-                        base_timestamp = packet.pts
+
+                        # TODO: Fix timestamp 
+                        # First packet in buffer has pts=None and dts=None
+                        base_timestamp = buffer[0].pts if buffer[0].pts else 0
+                        # print(buffer)
+
+                        for p in buffer:
+                            if p.pts and p.dts:
+                                p.pts -= base_timestamp
+                                p.dts -= base_timestamp
+                            p.stream = out_stream
+                            output.mux(p)
+                        buffer.clear()
+                    
                 else:
                     frames_since_thresh += 1
                     if alarm:
@@ -79,6 +95,12 @@ def main():
                     packet.dts -= base_timestamp
                 packet.stream = out_stream
                 output.mux(packet)
+
+            else:
+                if len(buffer) == BUFFER_SIZE:
+                    buffer.popleft()
+
+                buffer.append(packet)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
