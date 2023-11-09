@@ -100,7 +100,8 @@ def main():
                 if len(buffer) == BUFFER_SIZE:
                     buffer.popleft()
 
-                buffer.append(packet)
+                if packet.pts is not None:
+                    buffer.append(packet)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
