@@ -6,7 +6,7 @@ const port = 3000;
 
 app.use(express.urlencoded({
     extended: true
-  }))
+}))
 
 // get UI
 app.get('/cam', (req, res) => {
@@ -16,6 +16,11 @@ app.get('/cam', (req, res) => {
 // update config file
 app.post('/cam', (req, res) => {
     moducam.updateConfigFile(req.body);
+});
+
+// kill python process and restart
+app.post('/restart', (req, res) => {
+    moducam.restart();
 });
 
 app.get('/', (req, res) => {
