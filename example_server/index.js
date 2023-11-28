@@ -16,11 +16,14 @@ app.get('/cam', (req, res) => {
 // update config file
 app.post('/cam', (req, res) => {
     moducam.updateConfigFile(req.body);
+    res.sendStatus(200)
 });
 
 // kill python process and restart
 app.post('/restart', (req, res) => {
     moducam.restart();
+    res.sendStatus(200)
+
 });
 
 app.get('/', (req, res) => {
