@@ -6,10 +6,14 @@ let config = ini.parse(fs.readFileSync('../config.ini', 'utf-8'))
 
 exports.restart = function() {
     console.log('here')
-    const pythonProcess = spawn('python3', ['../cam.py']);
+    const pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py']);
 
     pythonProcess.stdout.on('data', (data) => {
         console.log(data)
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python stderr: ${data}`);
     });
 }
 

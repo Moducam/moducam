@@ -1,8 +1,9 @@
 import av
-import cv2
+# import cv2
 import configparser
 import collections
 from datetime import datetime
+import sys
 
 def grayscale(pxl):
     return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
@@ -12,7 +13,7 @@ def getOutFileName():
 
 def setConfigurations():
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('/Users/matthewhung/Documents/Code/moducam/config.ini')
 
     global CAMERA_PATH, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, FRAMES_AFTER_ALARM, BUFFER_SIZE
 
@@ -86,7 +87,7 @@ def main():
                             output.close()
                             base_timestamp = None 
 
-                cv2.imshow("Video", img_draw)
+                # cv2.imshow("Video", img_draw)
                 print(count, "Alarm:", alarm)
 
             if alarm:
@@ -103,13 +104,13 @@ def main():
                 if packet.pts is not None:
                     buffer.append(packet)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
             
     except KeyboardInterrupt:
         pass
 
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()
