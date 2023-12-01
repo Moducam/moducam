@@ -1,22 +1,27 @@
+import sys
 import av
 import cv2
 import configparser
 import collections
 from datetime import datetime
 
+CONFIG_ERROR = 5
+
 def grayscale(pxl):
     return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
 
 def getOutFileName():
-    return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    return datetime.now().strftime(NAME + '-%Y-%m-%d_%H-%M-%S')
 
 def setConfigurations():
+    filepath = sys.argv[1] if len(sys.argv) > 1 else 'config.ini'
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(filepath)
 
-    global CAMERA_PATH, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, FRAMES_AFTER_ALARM, BUFFER_SIZE
+    global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, FRAMES_AFTER_ALARM, BUFFER_SIZE
 
     CAMERA_PATH = config['Camera']['camera_path']
+    NAME = config['Camera']['name']
     PIXEL_THRESHOLD = int(config['MotionSettings']['pixel_threshold'])
     ALARM_THRESHOLD = int(config['MotionSettings']['alarm_threshold'])
     PIXEL_STEP = int(config['MotionSettings']['pixel_step'])
@@ -24,7 +29,11 @@ def setConfigurations():
     BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
 
 def main():
-    setConfigurations()
+    try:
+        setConfigurations()
+    except Exception as e:
+        print(e)
+        exit(CONFIG_ERROR)
     video = av.open(CAMERA_PATH, 'r', options={'rtsp_transport':'tcp'})
 
     in_stream = video.streams.video[0]
