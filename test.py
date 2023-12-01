@@ -1,3 +1,4 @@
 import sys
 
-print(sys.executable)
+print('helloe world')
+sys.stdout.flush()
