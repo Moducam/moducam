@@ -4,6 +4,8 @@ import cv2
 import configparser
 import collections
 from datetime import datetime
+import numpy as np
+import base64
 
 CONFIG_ERROR = 5
 
@@ -51,7 +53,14 @@ def main():
     try:
         for packet in video.demux(in_stream):
             for frame in packet.decode():
+                
                 img = frame.to_ndarray(format='bgr24')
+                f = open('IMG_0920.JPG', 'rb')
+                encodedString = base64.b64encode(f.read())
+                sys.stdout.buffer.write(encodedString)
+                # image_bytes = np.clip(img, 0, 255).astype(np.uint8).tobytes()
+                # sys.stdout.buffer.write(image_bytes)
+                sys.stdout.flush()
 
                 count = 0
                 img_draw = img.copy()

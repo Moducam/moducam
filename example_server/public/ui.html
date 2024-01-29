@@ -27,5 +27,58 @@
       <form action="/restart" method="POST">
         <button type="submit" class="btn btn-primary">Restart</button>
       </form>
+      <!-- <canvas id="canvas">unsupported browser</canvas> -->
+      <img id="image" alt="Image from WebSocket">
+
+      <!-- <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        ws.binaryType = 'arraybuffer';
+
+        ws.onopen = () => {
+            console.log("Connected")
+        };
+
+        ws.onmessage = (evt) => {
+          console.log(evt.data)
+          const imageDataUrl = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(evt.data)));
+          console.log(imageDataUrl)
+            // Set the image source
+          document.getElementById('image').src = imageDataUrl; 
+
+          // console.log(evt.data)
+          //   // re-create(?) blob data from websocket
+          // const blob = new Blob([evt.data], {
+          //     type: 'image/jpg' // -> MIME TYPES OF IMAGES GOES HERE
+          // });
+          // // create blob url
+          // const url = URL.createObjectURL(blob);
+          // const image = document.getElementById("image");
+          // document.getElementById("image").src = url;
+          // console.log(image)
+          // const img = new Image(0, 0);
+
+          // img.onload = () => {
+          //     // get canvas context
+          //     console.log('here')
+          //     let ctx = image.getContext("2d");
+
+          //     ctx.clearRect(0, 0, image.width, image.height);
+          //     ctx.drawImage(img, 0, 0);
+
+          // };
+          // image.src = url;
+          // console.log(img.src)
+        };
+    </script> -->
+    <script>
+      var socket = io.connect('/');
+    
+      socket.on("image", function(info) {
+          // var img = new Image();
+          const img = document.getElementById('image');
+          img.src = 'data:image/jpeg;base64,' + info.buffer;
+          // ctx.drawImage(img, 0, 0);
+     });
+    </script>
   </body>
 </html>
