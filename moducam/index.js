@@ -2,16 +2,38 @@ const fs = require('fs');
 const ini = require('ini');
 const { spawn } = require('child_process');
 const CONFIG_PATH = '../config.ini';
+const WebSocket = require("ws");
+
+const io = require('socket.io')
 
 let config = ini.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'))
-var pythonProcess = spawn('/usr/bin/python', ['../cam.py', CONFIG_PATH]);
+var pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH]);
 setProcessEvents();
+
+const wss = new WebSocket.Server({
+    port: 8080
+});
+
+wss.on("connection", function connection(ws) {
+    console.log("Client conneted to websocket");
+});
+
+// listen for the new image
+pythonProcess.stdout.on("data", (data) => {
+    // broadcast the new binary image to all clients
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data, { binary: true });
+        }
+    });
+    io.emit('image', data)
+});
 
 exports.restart = function() {
     if (pythonProcess) {
         pythonProcess.kill('SIGINT');
     } else {
-        pythonProcess = spawn('/usr/bin/python', ['../cam.py', CONFIG_PATH]);
+        pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH]);
         setProcessEvents();
     }
 }
@@ -24,7 +46,7 @@ function setProcessEvents() {
             pythonProcess = null;
             return;
         }
-        pythonProcess = spawn('/usr/bin/python', ['../cam.py', CONFIG_PATH]);
+        pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH]);
         setProcessEvents();
     });
 }
