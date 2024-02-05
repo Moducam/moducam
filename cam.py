@@ -5,7 +5,7 @@ import configparser
 import collections
 from datetime import datetime
 import numpy as np
-import base64
+import os
 
 CONFIG_ERROR = 5
 
@@ -50,17 +50,26 @@ def main():
 
     buffer = collections.deque()
 
+    if len(sys.argv) > 2:
+        pipe_path = 'my_pipe'
+        pipe_fd = os.open(pipe_path, os.O_WRONLY)
+
     try:
         for packet in video.demux(in_stream):
             for frame in packet.decode():
-                
                 img = frame.to_ndarray(format='bgr24')
-                f = open('IMG_0920.JPG', 'rb')
-                encodedString = base64.b64encode(f.read())
-                sys.stdout.buffer.write(encodedString)
-                # image_bytes = np.clip(img, 0, 255).astype(np.uint8).tobytes()
-                # sys.stdout.buffer.write(image_bytes)
-                sys.stdout.flush()
+
+                is_success, im_buf_arr = cv2.imencode(".jpeg", img)
+                image_data = im_buf_arr.tobytes()
+
+                if len(sys.argv) > 2:
+                    with open(pipe_path, 'wb') as pipe:
+                        # with open('IMG_0920.jpeg', 'rb') as image_file:
+                        #     image_data = image_file.read()
+                        #     pipe.write(image_data)
+                        #     pipe.flush()
+                        pipe.write(image_data)
+                        pipe.flush()
 
                 count = 0
                 img_draw = img.copy()
@@ -78,7 +87,7 @@ def main():
                     frames_since_thresh = 0
                     if not alarm:
                         alarm = True
-                        print("--- Writing to file")
+                        # print("--- Writing to file")
                         output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
 
@@ -100,12 +109,12 @@ def main():
                     if alarm:
                         if frames_since_thresh > FRAMES_AFTER_ALARM and alarm:
                             alarm = False
-                            print("--- Closing file")
+                            # print("--- Closing file")
                             output.close()
                             base_timestamp = None 
 
                 cv2.imshow("Video", img_draw)
-                print(count, "Alarm:", alarm)
+                # print(count, "Alarm:", alarm)
 
             if alarm:
                 if base_timestamp is not None:
@@ -128,6 +137,9 @@ def main():
         pass
 
     cv2.destroyAllWindows()
+
+    # Close the pipe
+    os.close(pipe_fd)
 
 if __name__ == '__main__':
     main()
