@@ -27,23 +27,44 @@
       <form action="/restart" method="POST">
         <button type="submit" class="btn btn-primary">Restart</button>
       </form>
+      <input type="file" id="file-selector">
+
       <!-- <canvas id="canvas">unsupported browser</canvas> -->
       <img id="image" alt="Image from WebSocket">
 
-      <!-- <script>
+      <script>
         const ws = new WebSocket('ws://localhost:8080');
         ws.binaryType = 'arraybuffer';
+        let bytes;
+
+        const fileSelector = document.getElementById('file-selector');
+        fileSelector.addEventListener('change', (event) => {
+          const fileList = event.target.files;
+
+          const reader = new FileReader();
+          reader.readAsArrayBuffer(fileList[0]);
+
+          reader.onload = function(event) {
+              const imageData = event.target.result;
+              bytes = new Uint8Array(imageData);
+              console.log(bytes); // Here you can see the bytes array in the browser console
+              document.getElementById('image').src = URL.createObjectURL(
+                new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
+            );
+          };
+        });
+
 
         ws.onopen = () => {
             console.log("Connected")
         };
 
         ws.onmessage = (evt) => {
-          console.log(evt.data)
-          const imageDataUrl = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(evt.data)));
-          console.log(imageDataUrl)
-            // Set the image source
-          document.getElementById('image').src = imageDataUrl; 
+          const bytes = new Uint8Array(evt.data);
+          // console.log(bytes)
+          document.getElementById('image').src = URL.createObjectURL(
+            new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
+          );
 
           // console.log(evt.data)
           //   // re-create(?) blob data from websocket
@@ -69,16 +90,6 @@
           // image.src = url;
           // console.log(img.src)
         };
-    </script> -->
-    <script>
-      var socket = io.connect('/');
-    
-      socket.on("image", function(info) {
-          // var img = new Image();
-          const img = document.getElementById('image');
-          img.src = 'data:image/jpeg;base64,' + info.buffer;
-          // ctx.drawImage(img, 0, 0);
-     });
     </script>
   </body>
 </html>
