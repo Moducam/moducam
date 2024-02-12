@@ -1,12 +1,18 @@
 const fs = require('fs');
 const ini = require('ini');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const CONFIG_PATH = '../config.ini';
 const WebSocket = require("ws");
 
-let config = ini.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'))
-var pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH, true]);
-setProcessEvents();
+let config = ini.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+let pythonPath;
+let pythonProcess;
+
+exec('which python3', (error, stdout, stderr) => {
+    pythonPath = stdout.trim()
+    pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
+    setProcessEvents();
+})
 
 const wss = new WebSocket.Server({
     port: 8080
@@ -25,18 +31,13 @@ fifo.on('exit', function(status) {
     const fd  = fs.openSync(path, 'r+');
     let fifoRs = fs.createReadStream(null, { fd });
 
-    console.log('Ready to write')
-
     image = ''
     image = Buffer.alloc(0);
 
     fifoRs.on('data', data => {
         image = Buffer.concat([image, data]);
 
-        // 2196 should be last packet
-        // if (image.length == 2418836) {
         if (data.length < 8192) {
-            console.log('sending');
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(image, {binary : true});
@@ -47,26 +48,11 @@ fifo.on('exit', function(status) {
     });
 });
 
-// listen for the new image
-// pythonProcess.stdout.on("data", (data) => {
-//     console.log(data)
-//     let buf = Buffer.from(data);
-//     console.log(buf)
-//     fs.writeFileSync("new-path.jpg", data);
-
-//     // broadcast the new binary image to all clients
-//     wss.clients.forEach((client) => {
-//         if (client.readyState === WebSocket.OPEN) {
-//             client.send(base64);
-//         }
-//     });
-// });
-
 exports.restart = function() {
     if (pythonProcess) {
         pythonProcess.kill('SIGINT');
     } else {
-        pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH]);
+        pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
         setProcessEvents();
     }
 }
@@ -79,14 +65,12 @@ function setProcessEvents() {
             pythonProcess = null;
             return;
         }
-        pythonProcess = spawn('/opt/homebrew/opt/python@3.11/bin/python3.11', ['../cam.py', CONFIG_PATH]);
+        pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
         setProcessEvents();
     });
 }
 
 exports.updateConfigFile = function(new_configs) {
-    // console.log(new_configs)
-
     for (const key in config) {
         for (const property in config[key]) {
             if (new_configs.hasOwnProperty(property)) {
