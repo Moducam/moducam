@@ -87,11 +87,11 @@ def compute_zone(points, width, height):
     return ranges
 
 def write_to_pipe(path, pipe_queue):
-    with open(path, 'wb') as pipe:
-        while True:
-            data = pipe_queue.get()
-            if data is None:
-                break
+    while True:
+        data = pipe_queue.get()
+        if data is None:
+            break
+        with open(path, 'wb') as pipe:
             pipe.write(data)
             pipe.flush()
             pipe_queue.task_done()
