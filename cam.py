@@ -3,11 +3,14 @@ import av
 import cv2
 import configparser
 import collections
+import threading
+import queue
 from datetime import datetime
 import numpy as np
 import os
 
 CONFIG_ERROR = 5
+MAX_PIPE_QUEUE = 10
 
 def grayscale(pxl):
     return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
@@ -23,10 +26,7 @@ def setConfigurations():
 
     global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, ZONE_POINTS, FRAMES_AFTER_ALARM, BUFFER_SIZE, PIPE
 
-    if sys.argv[-1] == '--pipe':
-        PIPE = True
-    else:
-        PIPE = False
+    PIPE = True if sys.argv[-1] == '--pipe' else False
 
     CAMERA_PATH = config['Camera']['camera_path']
     if CAMERA_PATH[0] == CAMERA_PATH[-1] == "\"":
@@ -86,6 +86,16 @@ def compute_zone(points, width, height):
         ranges.append(row_ranges)
     return ranges
 
+def write_to_pipe(path, pipe_queue):
+    while True:
+        data = pipe_queue.get()
+        if data is None:
+            break
+        with open(path, 'wb') as pipe:
+            pipe.write(data)
+            pipe.flush()
+            pipe_queue.task_done()
+
 def main():
     try:
         setConfigurations()
@@ -112,7 +122,9 @@ def main():
 
     if PIPE:
         pipe_path = 'my_pipe'
-        pipe_fd = os.open(pipe_path, os.O_WRONLY)
+        pipe_queue = queue.Queue()
+        worker_thread = threading.Thread(target=write_to_pipe, args=(pipe_path, pipe_queue))
+        worker_thread.start()
 
     try:
         for packet in video.demux(in_stream):
@@ -122,10 +134,8 @@ def main():
                 is_success, im_buf_arr = cv2.imencode(".jpeg", img)
                 image_data = im_buf_arr.tobytes()
 
-                if PIPE:
-                    with open(pipe_path, 'wb') as pipe:
-                        pipe.write(image_data)
-                        pipe.flush()
+                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
+                    pipe_queue.put(image_data)
 
                 count = 0
                 outcount = 0 # FOR TESTING
@@ -218,6 +228,8 @@ def main():
     cv2.destroyAllWindows()
 
     if PIPE:
+        pipe_queue.put(None)
+        worker_thread.join()
         os.close(pipe_fd)
 
 if __name__ == '__main__':
