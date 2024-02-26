@@ -1,0 +1,20 @@
+body {
+    text-align: center;
+}
+
+#drawcanvas {
+    background-color: #303550;
+    text-align: center;
+    overflow: visible;
+    position: relative;
+}
+
+#drawcanvas canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#drawcanvas img {
+    width: 100%;
+}

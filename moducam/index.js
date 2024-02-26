@@ -74,10 +74,43 @@ exports.updateConfigFile = function(new_configs) {
     for (const key in config) {
         for (const property in config[key]) {
             if (new_configs.hasOwnProperty(property)) {
+                if (property === "zone_points") {
+                    new_configs[property] = convertPointsFromJson(new_configs[property]);
+                }
                 config[key][property] = new_configs[property]
             }
         }
     }
 
-    fs.writeFileSync('../config_modified.ini', ini.stringify(config));
+    fs.writeFileSync(CONFIG_PATH, ini.stringify(config));
+    
+    //TEMPORARY FOR DEMO
+    exports.restart();
+}
+
+exports.getConfig = function(key, property) {
+    if (!(config[key] && config[key][property]))
+        return null;
+
+    val = config[key][property];
+    if (key === "Zone" && property === "zone_points") {
+        val = convertPointsToJson(val);
+    }
+    return {"property": val};
+}
+
+function convertPointsFromJson(json) {
+    return json.map(point => `(${point.x}, ${point.y})`).join(", ");
+}
+
+function convertPointsToJson(str) {
+    const points = str.split("), ").map(point => 
+        point.replace(/\(|\)/g, "")
+        .split(", ")
+        .map(Number)
+      );
+    
+      const zonePoints = points.map(([x, y]) => ({ x, y }));
+      
+      return zonePoints;
 }
