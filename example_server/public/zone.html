@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Moducam</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/drawcanvas.css">
+  </head>
+  <body>
+    <div class="container">
+      <h2>Edit Zone</h2>
+      <div id="drawcanvas" oncontextmenu="return false">
+        <img id="image" alt="Image" src="/lib/IMG_7353g.png">
+      </div>
+      <button id="sendZonePoints" class="btn btn-primary">Save</button>
+
+      <script language="javascript" type="text/javascript" src="/lib/p5.min.js"></script>
+      <script language="javascript" type="text/javascript" src="/lib/zonedrawer.js"></script>
+      <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        ws.binaryType = 'arraybuffer';
+
+        ws.onopen = () => {
+            console.log("Connected");
+        };
+
+        ws.onmessage = (evt) => {
+          const bytes = new Uint8Array(evt.data);
+          document.getElementById('image').src = URL.createObjectURL(
+            new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
+          );
+        };
+        
+        fetch('/config/?cat=Zone&property=zone_points')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            vertices = data.property;
+          });
+        
+        document.getElementById("sendZonePoints").addEventListener('click', function() {
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/cam", true);
+          xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              console.log(xhr.responseText);
+            }
+          };
+          var data = JSON.stringify({zone_points: vertices});
+          xhr.send(data);
+        });
+    </script>
+  </body>
+</html>
