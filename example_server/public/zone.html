@@ -10,6 +10,33 @@
   <body>
     <div class="container">
       <h2>Edit Zone</h2>
+      <!-- <form action="/cam" method="POST"> -->
+      <form">
+        <div class="form-group">
+          <label for="cameraPath">Camera Path</label>
+          <input type="text" class="form-control" id="cameraPath" name="camera_path">
+        </div>
+        <div class="form-group">
+          <label for="pixelThreshold">Pixel Threshold</label>
+          <input type="text" class="form-control" id="pixelThreshold" name="pixel_threshold">
+        </div>
+        <div class="form-group">
+          <label for="alarmThreshold">Alarm Threshold</label>
+          <input type="text" class="form-control" id="alarmThreshold" name="alarm_threshold">
+        </div>
+        <div class="form-group">
+          <label for="pixelStep">Pixel Step</label>
+          <input type="text" class="form-control" id="pixelStep" name="pixel_step">
+        </div>
+        <div class="form-group">
+          <label for="framesAfterAlarm">Frames After Alarm</label>
+          <input type="text" class="form-control" id="framesAfterAlarm" name="frames_after_alarm">
+        </div>
+        <div class="form-group">
+          <label for="bufferSize">Buffer Size</label>
+          <input type="text" class="form-control" id="bufferSize" name="buffer_size">
+        </div>
+      </form>
       <div id="drawcanvas" oncontextmenu="return false">
         <img id="image" alt="Image" src="/lib/IMG_7353g.png">
       </div>
@@ -52,7 +79,23 @@
               console.log(xhr.responseText);
             }
           };
-          var data = JSON.stringify({zone_points: vertices});
+          var data = JSON.stringify({
+            Camera: {
+              camera_path: document.getElementById('cameraPath').value
+            }, 
+            MotionSettings: {
+              pixel_threshold: document.getElementById('pixelThreshold').value,
+              alarm_threshold: document.getElementById('alarmThreshold').value,
+              pixel_step: document.getElementById('pixelStep').value
+            }, 
+            VideoSettings: {
+              frames_after_alarm: document.getElementById('framesAfterAlarm').value,
+              buffer_size: document.getElementById('bufferSize').value
+            },
+            Zone: {
+              zone_points: vertices
+            }
+          });
           xhr.send(data);
         });
     </script>
