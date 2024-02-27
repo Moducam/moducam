@@ -9,9 +9,9 @@
   </head>
   <body>
     <div class="container">
-      <h2>Edit Zone</h2>
+      <h2>Edit Configurations</h2>
       <!-- <form action="/cam" method="POST"> -->
-      <form">
+      <form>
         <div class="form-group">
           <label for="cameraPath">Camera Path</label>
           <input type="text" class="form-control" id="cameraPath" name="camera_path">
@@ -41,7 +41,7 @@
         <img id="image" alt="Image" src="/lib/IMG_7353g.png">
       </div>
       <button id="sendZonePoints" class="btn btn-primary">Save</button>
-
+      <p id="error"></p>
       <script language="javascript" type="text/javascript" src="/lib/p5.min.js"></script>
       <script language="javascript" type="text/javascript" src="/lib/zonedrawer.js"></script>
       <script>
@@ -79,7 +79,7 @@
               console.log(xhr.responseText);
             }
           };
-          var data = JSON.stringify({
+          var data = {
             Camera: {
               camera_path: document.getElementById('cameraPath').value
             }, 
@@ -95,9 +95,33 @@
             Zone: {
               zone_points: vertices
             }
-          });
-          xhr.send(data);
+          }
+          if (checkConfigs(data)) {
+            console.log('configurations valid');
+            document.getElementById('error').innerHTML = ''
+
+            // xhr.send(JSON.strinify(data));
+          }
+          else {
+            console.log('cofigurations invalid');
+            document.getElementById('error').innerHTML = 'Invalid configurations, cannot save'
+          }
         });
+
+        function checkConfigs(data) {
+          for (const key in data) {
+            for (const attr in data[key]) {
+              if (key == 'MotionSettings' || key == 'VideoSettings') {
+                if (isNaN(parseFloat(data[key][attr])) || !isFinite(data[key][attr])) {
+                  console.log('here')
+                  console.log(data[key][attr])
+                  return false;
+                }
+              }
+            }
+          }
+          return true;
+        }
     </script>
   </body>
 </html>
