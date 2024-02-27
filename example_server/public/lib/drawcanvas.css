@@ -2,6 +2,10 @@ body {
     text-align: center;
 }
 
+form {
+    text-align: left;
+}
+
 #drawcanvas {
     background-color: #303550;
     text-align: center;
