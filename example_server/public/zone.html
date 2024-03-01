@@ -18,11 +18,18 @@
         </div>
         <div class="form-group">
           <label for="pixelThreshold">Pixel Threshold</label>
-          <input type="text" class="form-control" id="pixelThreshold" name="pixel_threshold">
+          <div>
+            <input id="pixelThreshold" name="pixel_threshold" type="number" min="20" max="40" oninput="rangeInput.value=pixelThreshold.value" />
+            <input id="rangeInput" type="range" min="20" max="40" oninput="pixelThreshold.value=rangeInput.value" />
+          </div>
         </div>
         <div class="form-group">
           <label for="alarmThreshold">Alarm Threshold</label>
-          <input type="text" class="form-control" id="alarmThreshold" name="alarm_threshold">
+          <!-- <input type="text" class="form-control" id="alarmThreshold" name="alarm_threshold"> -->
+          <div>
+            <input id="rangeInput2" type="range" min="0" max="200" oninput="alarmThreshold.value=rangeInput2.value" />
+            <input id="alarmThreshold" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput2.value=alarmThreshold.value" />
+          </div>
         </div>
         <div class="form-group">
           <label for="pixelStep">Pixel Step</label>
@@ -69,6 +76,22 @@
           .then(data => {
             vertices = data.property;
           });
+
+        fetch('/configs')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            document.getElementById('cameraPath').value = data.Camera.camera_path;
+            document.getElementById('pixelThreshold').value = data.MotionSettings.pixel_threshold;
+            document.getElementById('alarmThreshold').value = data.MotionSettings.alarm_threshold;
+            document.getElementById('pixelStep').value = data.MotionSettings.pixel_step;
+            document.getElementById('framesAfterAlarm').value = data.VideoSettings.frames_after_alarm;
+            document.getElementById('bufferSize').value = data.VideoSettings.buffer_size;
+          });
         
         document.getElementById("sendZonePoints").addEventListener('click', function() {
           var xhr = new XMLHttpRequest();
@@ -98,9 +121,9 @@
           }
           if (checkConfigs(data)) {
             console.log('configurations valid');
-            document.getElementById('error').innerHTML = ''
+            document.getElementById('error').innerHTML = 'Saved'
 
-            // xhr.send(JSON.strinify(data));
+            xhr.send(JSON.stringify(data));
           }
           else {
             console.log('cofigurations invalid');
@@ -111,10 +134,8 @@
         function checkConfigs(data) {
           for (const key in data) {
             for (const attr in data[key]) {
-              if (key == 'MotionSettings' || key == 'VideoSettings') {
+              if ((key == 'MotionSettings' || key == 'VideoSettings') && data[key][attr] != '') {
                 if (isNaN(parseFloat(data[key][attr])) || !isFinite(data[key][attr])) {
-                  console.log('here')
-                  console.log(data[key][attr])
                   return false;
                 }
               }
