@@ -16,6 +16,7 @@ app.get('/cam', (req, res) => {
 
 // update config file
 app.post('/cam', (req, res) => {
+    console.log(req.body)
     moducam.updateConfigFile(req.body);
     res.sendStatus(200)
 });
@@ -47,6 +48,14 @@ app.get('/config', (req, res) => {
     else
         res.sendStatus(404);
 });
+
+app.get('/configs', (req, res) => {
+    val = moducam.getConfigs();
+    if (val)
+        res.send(val);
+    else
+        res.sendStatus(404);
+})
 
 app.get('/', (req, res) => {
     res.send('Hello World!');

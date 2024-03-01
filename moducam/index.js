@@ -71,6 +71,7 @@ function setProcessEvents() {
 }
 
 exports.updateConfigFile = function(new_configs) {
+    console.log(new_configs)
     for (const key in config) {
         for (const property in config[key]) {
             if (new_configs.hasOwnProperty(property)) {
@@ -98,6 +99,11 @@ exports.getConfig = function(key, property) {
     }
     return {"property": val};
 }
+
+exports.getConfigs = function() {
+    return config
+}
+
 
 function convertPointsFromJson(json) {
     return json.map(point => `(${point.x}, ${point.y})`).join(", ");
