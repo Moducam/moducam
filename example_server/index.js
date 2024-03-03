@@ -15,7 +15,7 @@ app.get('/cam', (req, res) => {
 });
 
 // update config file
-app.post('/cam', (req, res) => {
+app.post('/config', (req, res) => {
     moducam.updateConfigFile(req.body);
     res.sendStatus(200)
 });
