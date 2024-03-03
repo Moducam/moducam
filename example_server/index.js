@@ -15,7 +15,7 @@ app.get('/cam', (req, res) => {
 });
 
 // update config file
-app.post('/cam', (req, res) => {
+app.post('/config', (req, res) => {
     moducam.updateConfigFile(req.body);
     res.sendStatus(200)
 });
@@ -35,18 +35,13 @@ app.get('/cam/zone', (req, res) => {
 // get library files
 app.use('/lib', express.static(__dirname + '/public/lib'));
 
-// get config entry
 app.get('/config', (req, res) => {
-    if (!(req.query.cat && req.query.property)) {
-        res.sendStatus(400);
-        return;
-    }
-    val = moducam.getConfig(req.query.cat, req.query.property);
+    val = moducam.getConfig();
     if (val)
         res.send(val);
     else
         res.sendStatus(404);
-});
+})
 
 app.get('/', (req, res) => {
     res.send('Hello World!');

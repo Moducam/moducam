@@ -1,6 +1,7 @@
 let width = 1920, height = 1080;
 let scale = 1;
-let vertices = [{x: 508, y: 172}, {x: 1434, y: 962}, {x: 1422, y: 482}, {x: 1116, y: 740}, {x: 862, y: 406}, {x: 654, y: 156}, {x: 900, y: 952}, {x: 886, y: 278}];
+// let vertices = [{x: 508, y: 172}, {x: 1434, y: 962}, {x: 1422, y: 482}, {x: 1116, y: 740}, {x: 862, y: 406}, {x: 654, y: 156}, {x: 900, y: 952}, {x: 886, y: 278}];
+let vertices = [];
 let selectedVertex = null;
 let vertexRadius = width / 96;
 
@@ -14,12 +15,8 @@ const sketch = (p) => {
 
     p.draw = () => {
         p.clear();
-        p.textAlign(p.RIGHT)
-        p.noStroke();
-        p.textSize(50);
-        p.fill(60, 200, 120);
-        p.text("waddup", width, 34);
 
+        p.noStroke();
         p.fill(255, 60, 60, 70);
         p.beginShape();
         for (let v of vertices) {
