@@ -10,7 +10,6 @@
   <body>
     <div class="container">
       <h2>Edit Configurations</h2>
-      <!-- <form action="/cam" method="POST"> -->
       <form>
         <div class="form-group">
           <label for="cameraPath">Camera Path</label>
@@ -18,30 +17,38 @@
         </div>
         <div class="form-group">
           <label for="pixelThreshold">Pixel Threshold</label>
-          <div>
+          <div class="slider">
             <input id="pixelThreshold" name="pixel_threshold" type="number" min="20" max="40" oninput="rangeInput.value=pixelThreshold.value" />
             <input id="rangeInput" type="range" min="20" max="40" oninput="pixelThreshold.value=rangeInput.value" />
           </div>
         </div>
         <div class="form-group">
           <label for="alarmThreshold">Alarm Threshold</label>
-          <!-- <input type="text" class="form-control" id="alarmThreshold" name="alarm_threshold"> -->
-          <div>
-            <input id="rangeInput2" type="range" min="0" max="200" oninput="alarmThreshold.value=rangeInput2.value" />
+          <div class="slider">
             <input id="alarmThreshold" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput2.value=alarmThreshold.value" />
+            <input id="rangeInput2" type="range" min="0" max="200" oninput="alarmThreshold.value=rangeInput2.value" />
           </div>
         </div>
         <div class="form-group">
           <label for="pixelStep">Pixel Step</label>
-          <input type="text" class="form-control" id="pixelStep" name="pixel_step">
+          <div class="slider">
+            <input id="pixelStep" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput3.value=pixelStep.value" />
+            <input id="rangeInput3" type="range" min="0" max="200" oninput="pixelStep.value=rangeInput3.value" />
+          </div>
         </div>
         <div class="form-group">
           <label for="framesAfterAlarm">Frames After Alarm</label>
-          <input type="text" class="form-control" id="framesAfterAlarm" name="frames_after_alarm">
+          <div class="slider">
+            <input id="framesAfterAlarm" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput4.value=framesAfterAlarm.value" />
+            <input id="rangeInput4" type="range" min="0" max="200" oninput="framesAfterAlarm.value=rangeInput4.value" />
+          </div>
         </div>
         <div class="form-group">
           <label for="bufferSize">Buffer Size</label>
-          <input type="text" class="form-control" id="bufferSize" name="buffer_size">
+          <div class="slider">
+            <input id="bufferSize" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput5.value=bufferSize.value" />
+            <input id="rangeInput5" type="range" min="0" max="200" oninput="bufferSize.value=rangeInput5.value" />
+          </div>
         </div>
       </form>
       <div id="drawcanvas" oncontextmenu="return false">
@@ -65,19 +72,8 @@
             new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
           );
         };
-        
-        fetch('/config/?cat=Zone&property=zone_points')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            vertices = data.property;
-          });
 
-        fetch('/configs')
+        fetch('/config')
           .then(response => {
             if (!response.ok) {
               throw new Error('Network response was not ok');
@@ -91,6 +87,14 @@
             document.getElementById('pixelStep').value = data.MotionSettings.pixel_step;
             document.getElementById('framesAfterAlarm').value = data.VideoSettings.frames_after_alarm;
             document.getElementById('bufferSize').value = data.VideoSettings.buffer_size;
+
+            document.getElementById('rangeInput').value = data.MotionSettings.pixel_threshold
+            document.getElementById('rangeInput2').value = data.MotionSettings.alarm_threshold;
+            document.getElementById('rangeInput3').value = data.MotionSettings.pixel_step;
+            document.getElementById('rangeInput4').value = data.VideoSettings.frames_after_alarm;
+            document.getElementById('rangeInput5').value = data.VideoSettings.buffer_size;
+            
+            vertices = data.Zone.zone_points;
           });
         
         document.getElementById("sendZonePoints").addEventListener('click', function() {
@@ -134,10 +138,8 @@
         function checkConfigs(data) {
           for (const key in data) {
             for (const attr in data[key]) {
-              if ((key == 'MotionSettings' || key == 'VideoSettings') && data[key][attr] != '') {
-                if (isNaN(parseFloat(data[key][attr])) || !isFinite(data[key][attr])) {
-                  return false;
-                }
+              if (data[key][attr] == '') {
+                delete data[key][attr];
               }
             }
           }
