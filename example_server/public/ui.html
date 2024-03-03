@@ -6,29 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   </head>
-  <body>
+  <body style="text-align: center">
     <div class="container">
       <h1>Moducam</h1>
-      <form action="/cam" method="POST">
-        <div class="form-group">
-          <label for="cameraPath">Camera Path</label>
-          <input type="text" class="form-control" id="cameraPath" name="camera_path">
-        </div>
-        <div class="form-group">
-          <label for="pixelThreshold">Pixel Threshold</label>
-          <input type="text" class="form-control" id="pixelThreshold" name="pixel_threshold">
-        </div>
-        <div class="form-group">
-          <label for="bufferSize">Buffer Size</label>
-          <input type="text" class="form-control" id="bufferSize" name="buffer_size">
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
-      <form action="/restart" method="POST">
-        <button type="submit" class="btn btn-primary">Restart</button>
-      </form>
-      <!-- <canvas id="canvas">unsupported browser</canvas> -->
-      <img id="image" alt="Image from WebSocket">
+      <img id="image" alt="Image from WebSocket" style="max-width: 100%">
 
       <script>
         const ws = new WebSocket('ws://localhost:8080');
@@ -40,10 +21,12 @@
 
         ws.onmessage = (evt) => {
           const bytes = new Uint8Array(evt.data);
+          
           document.getElementById('image').src = URL.createObjectURL(
             new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
           );
         };
-    </script>
+      </script>
+      <button type="button" class="btn btn-primary">View saved videos</button>
   </body>
 </html>

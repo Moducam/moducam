@@ -9,12 +9,59 @@
   </head>
   <body>
     <div class="container">
-      <h2>Edit Zone</h2>
+      <h2>Edit Configurations</h2>
+      <form>
+        <div class="form-group">
+          <label for="cameraPath">Camera Path</label>
+          <input type="text" class="form-control" id="cameraPath" name="camera_path">
+        </div>
+        <div class="config-columns">
+          <div class="column">
+            <div class="form-group">
+              <label for="pixelThreshold">Pixel Threshold</label>
+              <div class="slider">
+                <input id="pixelThreshold" name="pixel_threshold" type="number" min="1" max="255" oninput="rangeInput.value=pixelThreshold.value" />
+                <input id="rangeInput" type="range" min="1" max="255" oninput="pixelThreshold.value=rangeInput.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="alarmThreshold">Alarm Threshold</label>
+              <div class="slider">
+                <input id="alarmThreshold" name="alarm_threshold" type="number" min="1" oninput="rangeInput2.value=alarmThreshold.value" />
+                <input id="rangeInput2" type="range" min="1" max="500" oninput="alarmThreshold.value=rangeInput2.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pixelStep">Pixel Step</label>
+              <div class="slider">
+                <input id="pixelStep" name="alarm_threshold" type="number" min="1" oninput="rangeInput3.value=pixelStep.value" />
+                <input id="rangeInput3" type="range" min="1" max="50" oninput="pixelStep.value=rangeInput3.value" />
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <div class="form-group">
+              <label for="framesAfterAlarm">Frames After Alarm</label>
+              <div class="slider">
+                <input id="framesAfterAlarm" name="alarm_threshold" type="number" min="1" oninput="rangeInput4.value=framesAfterAlarm.value" />
+                <input id="rangeInput4" type="range" min="1" max="300" oninput="framesAfterAlarm.value=rangeInput4.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bufferSize">Buffer Size</label>
+              <div class="slider">
+                <input id="bufferSize" name="alarm_threshold" type="number" min="0" oninput="rangeInput5.value=bufferSize.value" />
+                <input id="rangeInput5" type="range" min="0" max="300" oninput="bufferSize.value=rangeInput5.value" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
       <div id="drawcanvas" oncontextmenu="return false">
         <img id="image" alt="Image" src="/lib/IMG_7353g.png">
       </div>
       <button id="sendZonePoints" class="btn btn-primary">Save</button>
-
+      <p id="error"></p>
       <script language="javascript" type="text/javascript" src="/lib/p5.min.js"></script>
       <script language="javascript" type="text/javascript" src="/lib/zonedrawer.js"></script>
       <script>
@@ -31,8 +78,8 @@
             new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
           );
         };
-        
-        fetch('/config/?cat=Zone&property=zone_points')
+
+        fetch('/config')
           .then(response => {
             if (!response.ok) {
               throw new Error('Network response was not ok');
@@ -40,21 +87,70 @@
             return response.json();
           })
           .then(data => {
-            vertices = data.property;
+            document.getElementById('cameraPath').value = data.Camera.camera_path;
+            document.getElementById('pixelThreshold').value = data.MotionSettings.pixel_threshold;
+            document.getElementById('alarmThreshold').value = data.MotionSettings.alarm_threshold;
+            document.getElementById('pixelStep').value = data.MotionSettings.pixel_step;
+            document.getElementById('framesAfterAlarm').value = data.VideoSettings.frames_after_alarm;
+            document.getElementById('bufferSize').value = data.VideoSettings.buffer_size;
+
+            document.getElementById('rangeInput').value = data.MotionSettings.pixel_threshold
+            document.getElementById('rangeInput2').value = data.MotionSettings.alarm_threshold;
+            document.getElementById('rangeInput3').value = data.MotionSettings.pixel_step;
+            document.getElementById('rangeInput4').value = data.VideoSettings.frames_after_alarm;
+            document.getElementById('rangeInput5').value = data.VideoSettings.buffer_size;
+            
+            vertices = data.Zone.zone_points;
           });
         
         document.getElementById("sendZonePoints").addEventListener('click', function() {
           var xhr = new XMLHttpRequest();
-          xhr.open("POST", "/cam", true);
+          xhr.open("POST", "/config", true);
           xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
           xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
               console.log(xhr.responseText);
             }
           };
-          var data = JSON.stringify({zone_points: vertices});
-          xhr.send(data);
+          var data = {
+            Camera: {
+              camera_path: document.getElementById('cameraPath').value
+            }, 
+            MotionSettings: {
+              pixel_threshold: document.getElementById('pixelThreshold').value,
+              alarm_threshold: document.getElementById('alarmThreshold').value,
+              pixel_step: document.getElementById('pixelStep').value
+            }, 
+            VideoSettings: {
+              frames_after_alarm: document.getElementById('framesAfterAlarm').value,
+              buffer_size: document.getElementById('bufferSize').value
+            },
+            Zone: {
+              zone_points: vertices
+            }
+          }
+          if (checkConfigs(data)) {
+            console.log('configurations valid');
+            document.getElementById('error').innerHTML = 'Saved'
+
+            xhr.send(JSON.stringify(data));
+          }
+          else {
+            console.log('cofigurations invalid');
+            document.getElementById('error').innerHTML = 'Invalid configurations, cannot save'
+          }
         });
+
+        function checkConfigs(data) {
+          for (const key in data) {
+            for (const attr in data[key]) {
+              if (data[key][attr] == '') {
+                delete data[key][attr];
+              }
+            }
+          }
+          return true;
+        }
     </script>
   </body>
 </html>

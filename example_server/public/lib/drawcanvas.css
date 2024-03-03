@@ -2,6 +2,38 @@ body {
     text-align: center;
 }
 
+form {
+    text-align: left;
+}
+
+.config-columns {
+    display: flex;
+    justify-content: space-between;
+}
+
+.column {
+    flex: 1;
+}
+
+.column:first-child {
+    padding-right: 10px;
+}
+.column:last-child {
+    padding-left: 10px;
+}
+
+div .slider{
+    display: flex;
+    vertical-align: center;
+    gap: 8px;
+    height: 25px;
+}
+
+.slider input[type="number"] {
+    width: 80px;
+    flex-shrink: 0; 
+}
+
 #drawcanvas {
     background-color: #303550;
     text-align: center;

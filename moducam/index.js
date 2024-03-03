@@ -73,11 +73,11 @@ function setProcessEvents() {
 exports.updateConfigFile = function(new_configs) {
     for (const key in config) {
         for (const property in config[key]) {
-            if (new_configs.hasOwnProperty(property)) {
+            if (new_configs[key].hasOwnProperty(property)) {
                 if (property === "zone_points") {
-                    new_configs[property] = convertPointsFromJson(new_configs[property]);
+                    new_configs[key][property] = convertPointsFromJson(new_configs[key][property]);
                 }
-                config[key][property] = new_configs[property]
+                config[key][property] = new_configs[key][property]
             }
         }
     }
@@ -88,15 +88,10 @@ exports.updateConfigFile = function(new_configs) {
     exports.restart();
 }
 
-exports.getConfig = function(key, property) {
-    if (!(config[key] && config[key][property]))
-        return null;
-
-    val = config[key][property];
-    if (key === "Zone" && property === "zone_points") {
-        val = convertPointsToJson(val);
-    }
-    return {"property": val};
+exports.getConfig = function() {
+    const converted = JSON.parse(JSON.stringify(config));
+    converted["Zone"]["zone_points"] = convertPointsToJson(config["Zone"]["zone_points"])
+    return converted
 }
 
 function convertPointsFromJson(json) {
@@ -108,9 +103,9 @@ function convertPointsToJson(str) {
         point.replace(/\(|\)/g, "")
         .split(", ")
         .map(Number)
-      );
+    );
     
-      const zonePoints = points.map(([x, y]) => ({ x, y }));
+    const zonePoints = points.map(([x, y]) => ({ x, y }));
       
-      return zonePoints;
+    return zonePoints;
 }
