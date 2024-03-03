@@ -36,8 +36,9 @@ fifo.on('exit', function(status) {
 
     fifoRs.on('data', data => {
         image = Buffer.concat([image, data]);
-
-        if (data.length < 8192) {
+        //process.stdout.write("new data ");
+        if (data.length % 8192 != 0) {
+            //console.log("-----END ");
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(image, {binary : true});
