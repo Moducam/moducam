@@ -99,14 +99,13 @@ function convertPointsFromJson(json) {
 }
 
 function convertPointsToJson(str) {
-    console.log(str)
     const points = str.split("), ").map(point => 
         point.replace(/\(|\)/g, "")
         .split(", ")
         .map(Number)
-      );
+    );
     
-      const zonePoints = points.map(([x, y]) => ({ x, y }));
+    const zonePoints = points.map(([x, y]) => ({ x, y }));
       
-      return zonePoints;
+    return zonePoints;
 }
