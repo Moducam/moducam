@@ -6,6 +6,12 @@ form {
     text-align: left;
 }
 
+div .slider{
+    display: flex;
+    vertical-align: center;
+    height: 25px;
+}
+
 #drawcanvas {
     background-color: #303550;
     text-align: center;
