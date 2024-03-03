@@ -6,10 +6,26 @@ form {
     text-align: left;
 }
 
+.config-columns {
+    display: flex;
+    justify-content: space-between;
+}
+
+.column {
+    flex: 1;
+    padding: 0 20px;
+}
+
 div .slider{
     display: flex;
     vertical-align: center;
+    gap: 8px;
     height: 25px;
+}
+
+.slider input[type="number"] {
+    width: 80px;
+    flex-shrink: 0; 
 }
 
 #drawcanvas {
