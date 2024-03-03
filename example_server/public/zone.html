@@ -15,39 +15,45 @@
           <label for="cameraPath">Camera Path</label>
           <input type="text" class="form-control" id="cameraPath" name="camera_path">
         </div>
-        <div class="form-group">
-          <label for="pixelThreshold">Pixel Threshold</label>
-          <div class="slider">
-            <input id="pixelThreshold" name="pixel_threshold" type="number" min="20" max="40" oninput="rangeInput.value=pixelThreshold.value" />
-            <input id="rangeInput" type="range" min="20" max="40" oninput="pixelThreshold.value=rangeInput.value" />
+        <div class="config-columns">
+          <div class="column">
+            <div class="form-group">
+              <label for="pixelThreshold">Pixel Threshold</label>
+              <div class="slider">
+                <input id="pixelThreshold" name="pixel_threshold" type="number" min="1" max="255" oninput="rangeInput.value=pixelThreshold.value" />
+                <input id="rangeInput" type="range" min="1" max="255" oninput="pixelThreshold.value=rangeInput.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="alarmThreshold">Alarm Threshold</label>
+              <div class="slider">
+                <input id="alarmThreshold" name="alarm_threshold" type="number" min="1" oninput="rangeInput2.value=alarmThreshold.value" />
+                <input id="rangeInput2" type="range" min="1" max="500" oninput="alarmThreshold.value=rangeInput2.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pixelStep">Pixel Step</label>
+              <div class="slider">
+                <input id="pixelStep" name="alarm_threshold" type="number" min="1" oninput="rangeInput3.value=pixelStep.value" />
+                <input id="rangeInput3" type="range" min="1" max="50" oninput="pixelStep.value=rangeInput3.value" />
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label for="alarmThreshold">Alarm Threshold</label>
-          <div class="slider">
-            <input id="alarmThreshold" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput2.value=alarmThreshold.value" />
-            <input id="rangeInput2" type="range" min="0" max="200" oninput="alarmThreshold.value=rangeInput2.value" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="pixelStep">Pixel Step</label>
-          <div class="slider">
-            <input id="pixelStep" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput3.value=pixelStep.value" />
-            <input id="rangeInput3" type="range" min="0" max="200" oninput="pixelStep.value=rangeInput3.value" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="framesAfterAlarm">Frames After Alarm</label>
-          <div class="slider">
-            <input id="framesAfterAlarm" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput4.value=framesAfterAlarm.value" />
-            <input id="rangeInput4" type="range" min="0" max="200" oninput="framesAfterAlarm.value=rangeInput4.value" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="bufferSize">Buffer Size</label>
-          <div class="slider">
-            <input id="bufferSize" name="alarm_threshold" type="number" min="20" max="40" oninput="rangeInput5.value=bufferSize.value" />
-            <input id="rangeInput5" type="range" min="0" max="200" oninput="bufferSize.value=rangeInput5.value" />
+          <div class="column">
+            <div class="form-group">
+              <label for="framesAfterAlarm">Frames After Alarm</label>
+              <div class="slider">
+                <input id="framesAfterAlarm" name="alarm_threshold" type="number" min="1" oninput="rangeInput4.value=framesAfterAlarm.value" />
+                <input id="rangeInput4" type="range" min="1" max="300" oninput="framesAfterAlarm.value=rangeInput4.value" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bufferSize">Buffer Size</label>
+              <div class="slider">
+                <input id="bufferSize" name="alarm_threshold" type="number" min="0" oninput="rangeInput5.value=bufferSize.value" />
+                <input id="rangeInput5" type="range" min="0" max="300" oninput="bufferSize.value=rangeInput5.value" />
+              </div>
+            </div>
           </div>
         </div>
       </form>
