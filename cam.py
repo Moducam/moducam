@@ -8,25 +8,45 @@ import queue
 from datetime import datetime
 import numpy as np
 import os
+import argparse
 
-CONFIG_ERROR = 5
 MAX_PIPE_QUEUE = 10
+CONFIG_ERROR = 5
+FILENOTFOUND_ERROR = 6
 
-def grayscale(pxl):
-    return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
+def checkDirectory(path):
+    if path != '':
+        if path[-1] != '/':
+            path += '/'
+        if not os.path.exists(path):
+            raise argparse.ArgumentTypeError(f"{path} is not a directory")
+    return path
 
-def getOutFileName():
-    return datetime.now().strftime(NAME + '-%Y-%m-%d_%H-%M-%S')
+def setArgParams():
+    global CONFIG_PATH, PIPE, VIDEO_DIRECTORY
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parser = argparse.ArgumentParser(description='Start Moducam.')
+    
+    parser.add_argument('-c', '--config', type=str, help='Path to the configuration file', default=script_dir+'/config.ini')
+    parser.add_argument('--pipe', action='store_true', help='Enable pipe mode')
+    parser.add_argument('video_directory', type=checkDirectory, nargs='?', help='Destination video directory', default='')
+    
+    args = parser.parse_args()
+
+    CONFIG_PATH = args.config
+    PIPE = args.pipe
+    VIDEO_DIRECTORY = args.video_directory
 
 def setConfigurations():
-    filepath = sys.argv[1] if len(sys.argv) > 1 else 'config.ini'
+    # Change this behavior?
+    if not os.path.exists(CONFIG_PATH):
+        raise FileNotFoundError(f"Configuration file not found: {CONFIG_PATH}")
+        exit(FILENOTFOUND_ERROR)
 
     config = configparser.ConfigParser()
-    config.read(filepath)
+    config.read(CONFIG_PATH)
 
-    global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, ZONE_POINTS, FRAMES_AFTER_ALARM, BUFFER_SIZE, PIPE
-
-    PIPE = True if sys.argv[-1] == '--pipe' else False
+    global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, ZONE_POINTS, FRAMES_AFTER_ALARM, BUFFER_SIZE
 
     CAMERA_PATH = config['Camera']['camera_path']
     if CAMERA_PATH[0] == CAMERA_PATH[-1] == "\"":
@@ -39,6 +59,12 @@ def setConfigurations():
     ZONE_POINTS = list(eval(config['Zone']['zone_points']))
     FRAMES_AFTER_ALARM = int(config['VideoSettings']['frames_after_alarm'])
     BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
+
+def grayscale(pxl):
+    return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
+
+def getOutFileName():
+    return VIDEO_DIRECTORY + datetime.now().strftime(NAME + '-%Y-%m-%d_%H-%M-%S') + '.mp4'
 
 def compute_zone(points, width, height):
     if len(points) > 0:
@@ -97,6 +123,7 @@ def write_to_pipe(path, pipe_queue):
             pipe_queue.task_done()
 
 def main():
+    setArgParams()
     try:
         setConfigurations()
     except Exception as e:
@@ -174,7 +201,7 @@ def main():
                     if not alarm:
                         alarm = True
                         # print("--- Writing to file")
-                        output = av.open(getOutFileName()+'.mp4', 'w', format='mp4')
+                        output = av.open(getOutFileName(), 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
 
                         # TODO: Fix timestamp 

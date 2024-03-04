@@ -1,18 +1,29 @@
 const fs = require('fs');
 const ini = require('ini');
 const { spawn, exec } = require('child_process');
-const CONFIG_PATH = '../config.ini';
 const WebSocket = require("ws");
 
-let config = ini.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+let config;
 let pythonPath;
 let pythonProcess;
+let configPath
+let arglist;
 
-exec('which python3', (error, stdout, stderr) => {
-    pythonPath = stdout.trim()
-    pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
-    setProcessEvents();
-})
+exports.startModucam = function(moducamPath, confPath, videoDir) {
+    arglist = [moducamPath];
+    arglist.push("-c", confPath);
+    arglist.push("--pipe");
+    arglist.push(videoDir);
+
+    config = ini.parse(fs.readFileSync(confPath, 'utf-8'));
+    configPath = confPath
+
+    exec('which python3', (error, stdout, stderr) => {
+        pythonPath = stdout.trim()
+        pythonProcess = spawn(pythonPath, arglist);
+        setProcessEvents();
+    })
+}
 
 exports.startWebSocketServer = function(httpServer) {
     const wss = new WebSocket.Server({
@@ -56,7 +67,7 @@ exports.restart = function() {
     if (pythonProcess) {
         pythonProcess.kill('SIGINT');
     } else {
-        pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
+        pythonProcess = spawn(pythonPath, arglist);
         setProcessEvents();
     }
 }
@@ -69,7 +80,7 @@ function setProcessEvents() {
             pythonProcess = null;
             return;
         }
-        pythonProcess = spawn(pythonPath, ['../cam.py', CONFIG_PATH, '--pipe']);
+        pythonProcess = spawn(pythonPath, arglist);
         setProcessEvents();
     });
 }
@@ -86,7 +97,7 @@ exports.updateConfigFile = function(new_configs) {
         }
     }
 
-    fs.writeFileSync(CONFIG_PATH, ini.stringify(config));
+    fs.writeFileSync(configPath, ini.stringify(config));
     
     //TEMPORARY FOR DEMO
     exports.restart();
