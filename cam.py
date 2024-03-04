@@ -1,4 +1,3 @@
-import sys
 import av
 import cv2
 import configparser
@@ -6,7 +5,6 @@ import collections
 import threading
 import queue
 from datetime import datetime
-import numpy as np
 import os
 import argparse
 
@@ -113,11 +111,11 @@ def compute_zone(points, width, height):
     return ranges
 
 def write_to_pipe(path, pipe_queue):
-    while True:
-        data = pipe_queue.get()
-        if data is None:
-            break
-        with open(path, 'wb') as pipe:
+    with open(path, 'wb') as pipe:
+        while True:
+            data = pipe_queue.get()
+            if data is None:
+                break
             pipe.write(data)
             pipe.flush()
             pipe_queue.task_done()
@@ -257,7 +255,6 @@ def main():
     if PIPE:
         pipe_queue.put(None)
         worker_thread.join()
-        os.close(pipe_fd)
 
 if __name__ == '__main__':
     main()
