@@ -1,8 +1,12 @@
+const http = require('http');
 const express = require('express');
 const moducam = require('moducam');
 
 const app = express();
-const port = 3000;
+const server = http.createServer(app);
+const port = process.env.PORT || 3000;
+
+moducam.startWebSocketServer(server);
 
 app.use(express.urlencoded({
     extended: true
@@ -47,6 +51,6 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Listening at http://localhost:${port}`);
 });

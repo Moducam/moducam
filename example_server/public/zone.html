@@ -65,7 +65,10 @@
       <script language="javascript" type="text/javascript" src="/lib/p5.min.js"></script>
       <script language="javascript" type="text/javascript" src="/lib/zonedrawer.js"></script>
       <script>
-        const ws = new WebSocket('ws://localhost:8080');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.hostname;
+        const wsPort = window.location.port;
+        const ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}`);
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {

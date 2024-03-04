@@ -14,40 +14,43 @@ exec('which python3', (error, stdout, stderr) => {
     setProcessEvents();
 })
 
-const wss = new WebSocket.Server({
-    port: 8080
-});
-
-wss.on("connection", function connection(ws) {
-    console.log("Client conneted to websocket");
-});
-
-const path = 'my_pipe';
-let fifo = spawn('mkfifo', [path])
-
-fifo.on('exit', function(status) {
-    console.log('Created Pipe');
-
-    const fd  = fs.openSync(path, 'r+');
-    let fifoRs = fs.createReadStream(null, { fd });
-
-    image = ''
-    image = Buffer.alloc(0);
-
-    fifoRs.on('data', data => {
-        image = Buffer.concat([image, data]);
-        //process.stdout.write("new data ");
-        if (data.length % 8192 != 0) {
-            //console.log("-----END ");
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(image, {binary : true});
-                }
-            });
-            image = Buffer.alloc(0);
-        }
+exports.startWebSocketServer = function(httpServer) {
+    const wss = new WebSocket.Server({
+        server: httpServer
     });
-});
+
+    wss.on("connection", function connection(ws) {
+        console.log("Client conneted to websocket");
+    });
+
+    const path = 'my_pipe';
+    let fifo = spawn('mkfifo', [path]);
+
+    fifo.on('exit', function(status) {
+        console.log('Created Pipe');
+
+        const fd  = fs.openSync(path, 'r+');
+        let fifoRs = fs.createReadStream(null, { fd });
+
+        image = ''
+        image = Buffer.alloc(0);
+
+        fifoRs.on('data', data => {
+            image = Buffer.concat([image, data]);
+            //process.stdout.write("new data ");
+            if (data.length % 8192 != 0) {
+                //console.log("-----END ");
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(image, {binary : true});
+                    }
+                });
+                image = Buffer.alloc(0);
+            }
+        });
+    });
+
+}
 
 exports.restart = function() {
     if (pythonProcess) {
