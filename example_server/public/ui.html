@@ -12,7 +12,10 @@
       <img id="image" alt="Image from WebSocket" style="max-width: 100%">
 
       <script>
-        const ws = new WebSocket('ws://localhost:8080');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.hostname;
+        const wsPort = window.location.port;
+        const ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}`);
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
