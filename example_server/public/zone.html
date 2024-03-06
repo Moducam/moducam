@@ -75,11 +75,26 @@
             console.log("Connected");
         };
 
+        let dimsSet = false;
+        
         ws.onmessage = (evt) => {
           const bytes = new Uint8Array(evt.data);
-          document.getElementById('image').src = URL.createObjectURL(
-            new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
-          );
+          const blob = new Blob([bytes.buffer], { type: 'image/jpeg' });
+
+          const imageURL = URL.createObjectURL(blob);
+          document.getElementById('image').src = imageURL;
+
+          if (!dimsSet) {
+            dimsSet = true;
+            const tempImage = new Image();
+            tempImage.src = imageURL;
+            tempImage.onload = function() {
+              canvasWidth = tempImage.width;
+              canvasHeight = tempImage.height;
+              new p5(sketch);
+              adjustCanvasScale();
+            };
+          }
         };
 
         fetch('/config')
