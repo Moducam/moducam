@@ -7,7 +7,7 @@ let vertexRadius = width / 96;
 
 const sketch = (p) => {
     p.setup = () => {
-        let canvas = p.createCanvas(1920, 1080);
+        let canvas = p.createCanvas(width, height);
         canvas.parent("drawcanvas");
         adjustCanvasScale();
         p.clear();
@@ -100,9 +100,7 @@ function adjustCanvasScale() {
     const parent = document.getElementById('drawcanvas');
     const canvas = parent.querySelector('canvas');
     if (canvas) {
-        const scaleX = parent.offsetWidth / canvas.offsetWidth;
-        const scaleY = parent.offsetHeight / canvas.offsetHeight;
-        scale = Math.min(scaleX, scaleY); // Choose the smaller scale to fit the canvas entirely within the parent
+        scale = parent.offsetWidth / canvas.offsetWidth;
         canvas.style.transform = `scale(${scale})`;
         canvas.style.transformOrigin = 'top left';
     }
