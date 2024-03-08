@@ -1,5 +1,4 @@
 import av
-import cv2
 import configparser
 import collections
 import threading
@@ -7,6 +6,8 @@ import queue
 from datetime import datetime
 import os
 import argparse
+import io
+import imageio
 
 MAX_PIPE_QUEUE = 10
 CONFIG_ERROR = 5
@@ -59,7 +60,7 @@ def setConfigurations():
     BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
 
 def grayscale(pxl):
-    return 0.114*pxl[0] + 0.587*pxl[1] + 0.299*pxl[2]
+    return 0.299*pxl[0] + 0.587*pxl[1] + 0.114*pxl[2]
 
 def getOutFileName():
     return VIDEO_DIRECTORY + datetime.now().strftime(NAME + '-%Y-%m-%d_%H-%M-%S') + '.mp4'
@@ -116,7 +117,12 @@ def write_to_pipe(path, pipe_queue):
             data = pipe_queue.get()
             if data is None:
                 break
-            pipe.write(data)
+            
+            img_stream = io.BytesIO()
+            imageio.imwrite(img_stream, data, format='JPEG')
+            image_data = img_stream.getvalue()
+
+            pipe.write(image_data)
             pipe.flush()
             pipe_queue.task_done()
 
@@ -154,13 +160,7 @@ def main():
     try:
         for packet in video.demux(in_stream):
             for frame in packet.decode():
-                img = frame.to_ndarray(format='bgr24')
-
-                is_success, im_buf_arr = cv2.imencode(".jpeg", img)
-                image_data = im_buf_arr.tobytes()
-
-                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
-                    pipe_queue.put(image_data)
+                img = frame.to_ndarray(format='rgb24')
 
                 count = 0
                 outcount = 0 # FOR TESTING
@@ -191,8 +191,11 @@ def main():
                                         # FOR TESTING -- color pixel red in opencv
                                         for k in range(0, 3):
                                             for l in range(0, 3):
-                                                img_draw[y+k, x+l] = [0, 0, 255]
+                                                img_draw[y+k, x+l] = [255, 0, 0]
                 img_last = img
+
+                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
+                    pipe_queue.put(img_draw)
 
                 if count > ALARM_THRESHOLD:
                     frames_since_thresh = 0
@@ -224,7 +227,6 @@ def main():
                             output.close()
                             base_timestamp = None 
 
-                cv2.imshow("Video", img_draw)
                 # print(count, outcount, "Alarm:", alarm)
 
             if alarm:
@@ -243,14 +245,9 @@ def main():
 
                 if packet.pts is not None:
                     buffer.append(packet)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
             
     except KeyboardInterrupt:
         pass
-
-    cv2.destroyAllWindows()
 
     if PIPE:
         pipe_queue.put(None)
