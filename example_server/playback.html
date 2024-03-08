@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Video Playback - Moducam</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/videoplayer.css">
+  </head>
+  <body>
+    <div class="container">
+      <h2>Video Playback</h2>
+      <video id="video-playback" controls src="videos/broad-2024-03-04_12-19-12.mp4"></video>
+      <button id="button-prev" class="btn btn-primary">Prev</button>
+      <button id="button-next" class="btn btn-primary">Next</button>
+      <script>
+        document.getElementById("button-next").addEventListener('click', function() {
+          const url = new URL(window.location.href);
+          const vidFilename = url.searchParams.get("v") + ".mp4";
+          console.log(vidFilename);
+        });
+    </script>
+  </body>
+</html>
