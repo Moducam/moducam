@@ -1,3 +1,4 @@
+const fs = require('fs');
 const http = require('http');
 const express = require('express');
 const moducam = require('moducam');
@@ -5,8 +6,9 @@ const moducam = require('moducam');
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 3000;
+const videoDirectory = 'public/videos';
 
-moducam.startModucam('../cam.py', '../config.ini', 'public/videos');
+moducam.startModucam('../cam.py', '../config.ini', videoDirectory);
 moducam.startWebSocketServer(server);
 
 app.use(express.urlencoded({
@@ -27,7 +29,17 @@ app.get('/zone', (req, res) => {
 // get playback UI
 app.get('/playback', (req, res) => {
     res.sendFile(__dirname + '/playback.html')
-})
+});
+
+app.get('/videolist', (req, res) => {
+    fs.readdir(videoDir, (err, files) => {
+        let list = []
+        files.forEach(file => {
+            list.push(file.split('.')[0])
+        });
+        res.send(list)
+    });
+});
 
 // update config file
 app.post('/config', (req, res) => {
