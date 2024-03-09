@@ -1,6 +1,6 @@
 const http = require('http');
 const express = require('express');
-const moducam = require('moducam');
+const moducam = require('node-moducam');
 
 const app = express();
 const server = http.createServer(app);
