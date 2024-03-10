@@ -8,6 +8,10 @@ const server = http.createServer(app);
 const port = process.env.PORT || 3000;
 const videoDirectory = 'public/videos';
 
+if (!fs.existsSync(videoDirectory)){
+    fs.mkdirSync(videoDirectory);
+}
+
 moducam.startModucam('../cam.py', '../config.ini', videoDirectory);
 moducam.startWebSocketServer(server);
 
@@ -32,7 +36,7 @@ app.get('/playback', (req, res) => {
 });
 
 app.get('/videolist', (req, res) => {
-    fs.readdir(videoDir, (err, files) => {
+    fs.readdir(videoDirectory, (err, files) => {
         let list = []
         files.forEach(file => {
             list.push(file.split('.')[0])
