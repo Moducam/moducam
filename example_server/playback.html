@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Video Playback - Moducam</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/videoplayer.css">
+  </head>
+  <body>
+    <div class="container">
+      <h2>Video Playback</h2>
+      <h3 id="file-name"></h3>
+      <video id="video-playback" autoplay controls src=""></video>
+      <button id="button-prev" class="btn btn-primary">Prev</button>
+      <button id="button-next" class="btn btn-primary">Next</button>
+      <script>
+        let vidlist = []
+        
+        let vidName = new URL(window.location.href).searchParams.get("v");
+        let vidIndex;
+        
+        initialLoad()
+
+        document.getElementById("button-next").addEventListener('click', function() {
+          if (vidIndex == vidlist.length-1) return;
+          vidIndex++;
+          setVideoSource();
+        });
+        document.getElementById("button-prev").addEventListener('click', function() {
+          if (vidIndex == 0) return;
+          vidIndex--;
+          setVideoSource();
+        });
+
+        async function initialLoad() {
+          await getNewList();
+
+          if (vidName == null) {
+            vidIndex = vidlist.length-1;
+          } else {
+            vidIndex = vidlist.indexOf(vidName);
+            if (vidIndex == -1)
+              vidIndex = vidlist.length-1;
+          }
+          setVideoSource();
+        }
+        
+        function setVideoSource() {
+          const nameChanged = (vidName !== (vidName = vidlist[vidIndex]));
+          vidFilename = vidName + ".mp4";
+          document.getElementById("video-playback").setAttribute("src", "videos/" + vidFilename);
+          document.getElementById("file-name").innerHTML = vidFilename;
+
+          if (nameChanged) {
+            const newUrl = `${window.location.pathname}?v=${vidName}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+          }
+
+          getNewList();
+        }
+
+        async function getNewList() {
+          const res = await fetch("/videolist");
+          if (!res.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const data = await res.json();
+          vidlist = data;
+        }
+    </script>
+  </body>
+</html>
