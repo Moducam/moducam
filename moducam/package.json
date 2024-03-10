@@ -1,5 +1,5 @@
 {
-  "name": "moducam",
+  "name": "node-moducam",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "ini": "^4.1.1",
-    "socket.io": "^4.7.4",
     "ws": "^8.16.0"
   }
 }
