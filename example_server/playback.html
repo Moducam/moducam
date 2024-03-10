@@ -14,6 +14,7 @@
       <video id="video-playback" autoplay controls src=""></video>
       <button id="button-prev" class="btn btn-primary">Prev</button>
       <button id="button-next" class="btn btn-primary">Next</button>
+      <p id="index"></p>
       <script>
         let vidlist = []
         
@@ -51,6 +52,7 @@
           vidFilename = vidName + ".mp4";
           document.getElementById("video-playback").setAttribute("src", "videos/" + vidFilename);
           document.getElementById("file-name").innerHTML = vidFilename;
+          document.getElementById("index").innerHTML = "Showing video " + (vidIndex+1) + " of " + vidlist.length;
 
           if (nameChanged) {
             const newUrl = `${window.location.pathname}?v=${vidName}`;
