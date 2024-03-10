@@ -1,13 +1,14 @@
-let width = 1920, height = 1080;
+let canvasWidth, canvasHeight;
 let scale = 1;
 // let vertices = [{x: 508, y: 172}, {x: 1434, y: 962}, {x: 1422, y: 482}, {x: 1116, y: 740}, {x: 862, y: 406}, {x: 654, y: 156}, {x: 900, y: 952}, {x: 886, y: 278}];
 let vertices = [];
 let selectedVertex = null;
-let vertexRadius = width / 96;
 
 const sketch = (p) => {
+    let vertexRadius = canvasWidth / 96;
+
     p.setup = () => {
-        let canvas = p.createCanvas(1920, 1080);
+        let canvas = p.createCanvas(canvasWidth, canvasHeight);
         canvas.parent("drawcanvas");
         adjustCanvasScale();
         p.clear();
@@ -66,8 +67,8 @@ const sketch = (p) => {
 
     p.mouseDragged = () => {
         if (selectedVertex != null) {
-            let boundedX = Math.min(Math.max(Math.round(p.mouseX/scale), 0), width)
-            let boundedY = Math.min(Math.max(Math.round(p.mouseY/scale), 0), height)
+            let boundedX = Math.min(Math.max(Math.round(p.mouseX/scale), 0), canvasWidth)
+            let boundedY = Math.min(Math.max(Math.round(p.mouseY/scale), 0), canvasHeight)
             vertices[selectedVertex].x = boundedX;
             vertices[selectedVertex].y = boundedY;
         }
@@ -94,15 +95,11 @@ const sketch = (p) => {
     }
 };
 
-new p5(sketch);
-
 function adjustCanvasScale() {
     const parent = document.getElementById('drawcanvas');
     const canvas = parent.querySelector('canvas');
     if (canvas) {
-        const scaleX = parent.offsetWidth / canvas.offsetWidth;
-        const scaleY = parent.offsetHeight / canvas.offsetHeight;
-        scale = Math.min(scaleX, scaleY); // Choose the smaller scale to fit the canvas entirely within the parent
+        scale = parent.offsetWidth / canvas.offsetWidth;
         canvas.style.transform = `scale(${scale})`;
         canvas.style.transformOrigin = 'top left';
     }

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const http = require('http');
 const express = require('express');
 const moducam = require('node-moducam');
@@ -5,8 +6,13 @@ const moducam = require('node-moducam');
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 3000;
+const videoDirectory = 'public/videos';
 
-moducam.startModucam('../cam.py', '../config.ini', 'public/');
+if (!fs.existsSync(videoDirectory)){
+    fs.mkdirSync(videoDirectory);
+}
+
+moducam.startModucam('../cam.py', '../config.ini', videoDirectory);
 moducam.startWebSocketServer(server);
 
 app.use(express.urlencoded({
@@ -15,8 +21,28 @@ app.use(express.urlencoded({
 app.use(express.json());
 
 // get UI
-app.get('/cam', (req, res) => {
-    res.sendFile(__dirname + '/public/ui.html');
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/ui.html');
+});
+
+// get zone UI
+app.get('/zone', (req, res) => {
+    res.sendFile(__dirname + '/zone.html');
+});
+
+// get playback UI
+app.get('/playback', (req, res) => {
+    res.sendFile(__dirname + '/playback.html')
+});
+
+app.get('/videolist', (req, res) => {
+    fs.readdir(videoDirectory, (err, files) => {
+        let list = []
+        files.forEach(file => {
+            list.push(file.split('.')[0])
+        });
+        res.send(list)
+    });
 });
 
 // update config file
@@ -32,13 +58,8 @@ app.post('/restart', (req, res) => {
 
 });
 
-// get zone UI
-app.get('/cam/zone', (req, res) => {
-    res.sendFile(__dirname + '/public/zone.html');
-});
-
-// get library files
-app.use('/lib', express.static(__dirname + '/public/lib'));
+// use public folder for anything else
+app.use('/', express.static(__dirname + '/public'));
 
 app.get('/config', (req, res) => {
     val = moducam.getConfig();
