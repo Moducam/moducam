@@ -14,3 +14,6 @@ An easy-to-install modulcar security camera system, with an optional web interfa
 4. If you moved example_server out of the moducam directory, you must specify where moducam is located by setting `moducamPath` and `configPath` in index.js
 5. Run with `node index.js`
 6. By default, the server will be at http://localhost:3000
+
+### Installation notes
+If you cannot install python modules globally on your system, you can run this program in a virtual environment. Just run either the script or the node server with the virtual environment activated.
