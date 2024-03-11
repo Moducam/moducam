@@ -2,10 +2,12 @@ let canvasWidth, canvasHeight;
 let scale = 1;
 // let vertices = [{x: 508, y: 172}, {x: 1434, y: 962}, {x: 1422, y: 482}, {x: 1116, y: 740}, {x: 862, y: 406}, {x: 654, y: 156}, {x: 900, y: 952}, {x: 886, y: 278}];
 let vertices = [];
-let selectedVertex = null;
+
 
 const sketch = (p) => {
     let vertexRadius = canvasWidth / 96;
+    let selectedVertex = null;
+    let touchDetected = false;
 
     p.setup = () => {
         let canvas = p.createCanvas(canvasWidth, canvasHeight);
@@ -33,7 +35,7 @@ const sketch = (p) => {
         }
     };
 
-    p.mousePressed = () => {
+    function startTouch() {
         // console.log(p.mouseX/scale + " " + p.mouseY/scale + " - " + scale);
         for (let i = 0; i < vertices.length; i++) {
             let d = p.dist(p.mouseX/scale, p.mouseY/scale, vertices[i].x, vertices[i].y);
@@ -61,8 +63,25 @@ const sketch = (p) => {
         }
     }
 
-    p.mouseReleased = () => {
+    function endTouch() {
         selectedVertex = null;
+    }
+
+    p.touchStarted = () => {
+        touchDetected = true;
+        startTouch();
+        setTimeout(() => touchDetected = false, 80);
+    }
+    p.mousePressed = () => {
+        if (!touchDetected)
+            startTouch();
+    }
+    
+    p.touchEnded = () => {
+        endTouch();
+    }
+    p.mouseReleased = () => {
+        endTouch();
     }
 
     p.mouseDragged = () => {
@@ -72,6 +91,9 @@ const sketch = (p) => {
             vertices[selectedVertex].x = boundedX;
             vertices[selectedVertex].y = boundedY;
         }
+        if (p.mouseX/scale <= canvasWidth && p.mouseX/scale >= 0 &&
+            p.mouseY/scale <= canvasHeight && p.mouseY/scale >= 0)
+                return false;
     }
 
     function pointLineDistance(px, py, v1, v2) {
