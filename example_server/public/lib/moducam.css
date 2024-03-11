@@ -4,7 +4,7 @@ body {
 
 .topbar {
     display: flex;
-    border-bottom: 2px solid #858585;
+    border-bottom: 2px solid #adafb6;
 }
 .topbar a {
     text-decoration: none;
@@ -13,14 +13,15 @@ body {
 .pagetab {
     padding: 10px 20px;
     cursor: pointer;
-    border: 1px solid #858585;
 }
 .selected {
     background-color: white;
+    border: 1px solid #d2d4db;
     border-bottom: none;
     border-top: 2px solid #303090;
 }
 .notselected {
+    border: 1px solid #adafb6;
     background-color: #ced0d8;
     border-bottom: none;
 }
