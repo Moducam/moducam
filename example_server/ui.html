@@ -9,7 +9,12 @@
   </head>
   <body>
     <div class="container">
-      <h1>Moducam</h1>
+
+      <div class="topbar">
+        <a href="/"><div class="pagetab selected">Live Viewer</div></a>
+        <a href="/zone"><div class="pagetab notselected">Config</div></a>
+        <a href="/playback"><div class="pagetab notselected">Playback</div></a>
+      </div>
       <img id="imagefeed" alt="Image from WebSocket" src="/lib/notlive.jpg">
 
       <script>
@@ -31,6 +36,5 @@
           );
         };
       </script>
-      <a href="playback"><button type="button" class="btn btn-primary">View saved videos</button></a>
   </body>
 </html>

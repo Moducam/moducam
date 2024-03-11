@@ -9,9 +9,13 @@
   </head>
   <body>
     <div class="container">
-      <h2>Video Playback</h2>
+      <div class="topbar">
+        <a href="/"><div class="pagetab notselected">Live Viewer</div></a>
+        <a href="/zone"><div class="pagetab notselected">Config</div></a>
+        <a href="/playback"><div class="pagetab selected">Playback</div></a>
+      </div>
       <h3 id="file-name"></h3>
-      <video id="video-playback" autoplay controls src=""></video>
+      <video id="video-playback" controls src=""></video>
       <button id="button-prev" class="btn btn-primary">Prev</button>
       <button id="button-next" class="btn btn-primary">Next</button>
       <p id="index"></p>
