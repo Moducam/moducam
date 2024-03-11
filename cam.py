@@ -111,6 +111,39 @@ def compute_zone(points, width, height):
         ranges.append(row_ranges)
     return ranges
 
+def pixelPass(img, img_last, scan_ranges, img_draw):
+    count = 0
+    if img_last is not None:
+        for y in range(0, len(scan_ranges), PIXEL_STEP):
+            for r in scan_ranges[y]:
+                for x in range(r[0], r[1], PIXEL_STEP):
+                    # First step: Pixel color check
+                    if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > PIXEL_THRESHOLD:
+                        count += 1
+                        # Second step: Filter pixel by checking surrounding area
+                        if filterPass(img, img_last, x, y) < 4:
+                            count -= 1
+                        else:
+                            # FOR TESTING -- color pixel red in opencv
+                            for k in range(-1, 2):
+                                for l in range(0, 3):
+                                    img_draw[y+k, x+l] = [255, 0, 0]
+    return count
+
+def filterPass(img, img_last, x, y):
+    filtercount = 0
+    for k in range(0, 3):
+        if abs(grayscale(img[y-1, x-1+k]) - grayscale(img_last[y-1, x-1+k])) > PIXEL_THRESHOLD:
+            filtercount += 1
+    for k in range(0, 3):
+        if abs(grayscale(img[y+1, x-1+k]) - grayscale(img_last[y+1, x-1+k])) > PIXEL_THRESHOLD:
+            filtercount += 1
+    if abs(grayscale(img[y, x-1]) - grayscale(img_last[y, x-1])) > PIXEL_THRESHOLD:
+        filtercount += 1
+    if abs(grayscale(img[y, x+1]) - grayscale(img_last[y, x+1])) > PIXEL_THRESHOLD:
+        filtercount += 1
+    return filtercount
+
 def write_to_pipe(path, pipe_queue):
     with open(path, 'wb') as pipe:
         while True:
@@ -162,40 +195,10 @@ def main():
             for frame in packet.decode():
                 img = frame.to_ndarray(format='rgb24')
 
-                count = 0
-                outcount = 0 # FOR TESTING
                 img_draw = img.copy()
-                if img_last is not None:
-                    for y in range(0, len(scan_ranges), PIXEL_STEP):
-                        for r in scan_ranges[y]:
-                            for x in range(r[0], r[1], PIXEL_STEP):
-                                # First step: Pixel color check
-                                if abs(grayscale(img[y, x]) - grayscale(img_last[y, x])) > PIXEL_THRESHOLD:
-                                    count += 1
-                                    # Second step: Filter pixel by checking surrounding area
-                                    filtercount = 0
-                                    for k in range(0, 3):
-                                        if abs(grayscale(img[y-1, x-1+k]) - grayscale(img_last[y-1, x-1+k])) > PIXEL_THRESHOLD:
-                                            filtercount += 1
-                                    for k in range(0, 3):
-                                        if abs(grayscale(img[y+1, x-1+k]) - grayscale(img_last[y+1, x-1+k])) > PIXEL_THRESHOLD:
-                                            filtercount += 1
-                                    if abs(grayscale(img[y, x-1]) - grayscale(img_last[y, x-1])) > PIXEL_THRESHOLD:
-                                        filtercount += 1
-                                    if abs(grayscale(img[y, x+1]) - grayscale(img_last[y, x+1])) > PIXEL_THRESHOLD:
-                                        filtercount += 1
-                                    if filtercount < 4:
-                                        count -= 1
-                                        outcount += 1
-                                    else:
-                                        # FOR TESTING -- color pixel red in opencv
-                                        for k in range(0, 3):
-                                            for l in range(0, 3):
-                                                img_draw[y+k, x+l] = [255, 0, 0]
-                img_last = img
 
-                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
-                    pipe_queue.put(img_draw)
+                count = pixelPass(img, img_last, scan_ranges, img_draw)
+                img_last = img
 
                 if count > ALARM_THRESHOLD:
                     frames_since_thresh = 0
@@ -227,7 +230,10 @@ def main():
                             output.close()
                             base_timestamp = None 
 
-                # print(count, outcount, "Alarm:", alarm)
+                # print(count, "Alarm:", alarm)
+
+                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
+                    pipe_queue.put(img_draw)
 
             if alarm:
                 if base_timestamp is not None:
