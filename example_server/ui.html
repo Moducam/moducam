@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/moducam.css">
   </head>
-  <body style="text-align: center">
+  <body>
     <div class="container">
       <h1>Moducam</h1>
-      <img id="image" alt="Image from WebSocket" src="/lib/notlive.jpg" style="max-width: 100%">
+      <img id="imagefeed" alt="Image from WebSocket" src="/lib/notlive.jpg">
 
       <script>
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -25,7 +26,7 @@
         ws.onmessage = (evt) => {
           const bytes = new Uint8Array(evt.data);
           
-          document.getElementById('image').src = URL.createObjectURL(
+          document.getElementById('imagefeed').src = URL.createObjectURL(
             new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
           );
         };
