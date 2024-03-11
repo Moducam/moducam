@@ -240,10 +240,7 @@ def main():
                     packet.pts -= base_timestamp
                     packet.dts -= base_timestamp
                 packet.stream = out_stream
-                try:
-                    output.mux(packet)
-                except Exception as e:
-                    print(e)
+                output.mux(packet)
 
             else:
                 if len(buffer) == BUFFER_SIZE:
