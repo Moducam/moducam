@@ -16,25 +16,25 @@
         <a href="/playback"><div class="pagetab notselected">Playback</div></a>
       </div>
       <img id="imagefeed" alt="Image from WebSocket" src="/lib/notlive.jpg">
+    </div>
+    <script>
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.hostname;
+      const wsPort = window.location.port;
+      const ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}`);
+      ws.binaryType = 'arraybuffer';
 
-      <script>
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsHost = window.location.hostname;
-        const wsPort = window.location.port;
-        const ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}`);
-        ws.binaryType = 'arraybuffer';
+      ws.onopen = () => {
+        console.log("Connected")
+      };
 
-        ws.onopen = () => {
-            console.log("Connected")
-        };
-
-        ws.onmessage = (evt) => {
-          const bytes = new Uint8Array(evt.data);
-          
-          document.getElementById('imagefeed').src = URL.createObjectURL(
-            new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
-          );
-        };
-      </script>
+      ws.onmessage = (evt) => {
+        const bytes = new Uint8Array(evt.data);
+        
+        document.getElementById('imagefeed').src = URL.createObjectURL(
+          new Blob([bytes.buffer], { type: 'image/jpeg' } /* (1) */)
+        );
+      };
+    </script>
   </body>
 </html>
