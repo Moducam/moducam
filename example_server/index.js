@@ -6,13 +6,15 @@ const moducam = require('node-moducam');
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 3000;
+const moducamPath = '../moducam.py';
+const configPath = '../config.ini';
 const videoDirectory = 'public/videos';
 
 if (!fs.existsSync(videoDirectory)){
     fs.mkdirSync(videoDirectory);
 }
 
-moducam.startModucam('../cam.py', '../config.ini', videoDirectory);
+moducam.startModucam(moducamPath, configPath, videoDirectory);
 moducam.startWebSocketServer(server);
 
 app.use(express.urlencoded({
