@@ -1,5 +1,5 @@
 # Moducam
-An easy-to-install modular security camera system, with an optional web interface written in Node.js
+An easy-to-install modular camera surveillance system, with motion detection and an optional web interface written in Node.js
 
 ## Installation steps
 1. Ensure you have Python3 and Node.js installed
