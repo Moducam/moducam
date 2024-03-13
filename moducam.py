@@ -208,14 +208,17 @@ def main():
                         output = av.open(getOutFileName(), 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
 
-                        # TODO: Fix timestamp 
-                        # First packet in buffer has pts=None and dts=None
-                        base_timestamp = buffer[0].pts if buffer[0].pts else 0
-                        # print(buffer)
+                        # base_timestamp = buffer[0].pts if len(buffer) and buffer[0].pts else 0
 
                         for p in buffer:
-                            if p.pts and p.dts:
+                            if base_timestamp is None:
+                                if p.pts:
+                                    base_timestamp = p.pts
+                                elif p.dts:
+                                    base_timestamp = p.pts
+                            if p.pts:
                                 p.pts -= base_timestamp
+                            if p.dts:
                                 p.dts -= base_timestamp
                             p.stream = out_stream
                             output.mux(p)
@@ -236,8 +239,14 @@ def main():
                     pipe_queue.put(img_draw)
 
             if alarm:
-                if base_timestamp is not None:
+                if base_timestamp is None:
+                    if packet.pts:
+                        base_timestamp = packet.pts
+                    elif p.dts:
+                        base_timestamp = packet.pts
+                if packet.pts:
                     packet.pts -= base_timestamp
+                if packet.dts:
                     packet.dts -= base_timestamp
                 packet.stream = out_stream
                 output.mux(packet)
