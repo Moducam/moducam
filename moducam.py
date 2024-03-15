@@ -229,7 +229,11 @@ def main():
                             if p.dts:
                                 p.dts -= base_timestamp
                             p.stream = out_stream
-                            output.mux(p)
+                            try:
+                                output.mux(p)
+                            except Exception as e:
+                                print(e, file=sys.stderr)
+                                exit(7)
                         buffer.clear()
                     
                 else:
@@ -262,7 +266,11 @@ def main():
                 if packet.dts:
                     packet.dts -= base_timestamp
                 packet.stream = out_stream
-                output.mux(packet)
+                try:
+                    output.mux(packet)
+                except Exception as e:
+                    print(e, file=sys.stderr)
+                    exit(7)
 
             else:
                 if len(buffer) == BUFFER_SIZE:
