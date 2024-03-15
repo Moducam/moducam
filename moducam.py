@@ -4,6 +4,7 @@ import collections
 import threading
 import queue
 from datetime import datetime
+import sys
 import os
 import argparse
 import io
@@ -70,7 +71,7 @@ def compute_zone(points, width, height):
         if points[0] != points[-1]:
             points.append(points[0])
         if len(points) < 4:
-            print("ERROR: Zone cannot be defined by less than 3 points")
+            print("ERROR: Zone cannot be defined by less than 3 points", file=sys.stderr)
             exit(CONFIG_ERROR)
 
     ranges = []
@@ -97,8 +98,8 @@ def compute_zone(points, width, height):
                 intercepts.append(round(intercept))
 
         if len(intercepts) % 2 != 0:  # Should never happen
-            print("ERROR: Row has odd number of intercepts:")
-            print(intercepts)
+            print("ERROR: Row has odd number of intercepts:", file=sys.stderr)
+            print(intercepts, file=sys.stderr)
             exit(-1)
         
         intercepts.sort()
@@ -155,8 +156,8 @@ def write_to_pipe(path, pipe_queue):
             imageio.imwrite(img_stream, data, format='JPEG')
             image_data = img_stream.getvalue()
 
-            pipe.write(image_data)
-            pipe.flush()
+            sys.stdout.buffer.write(image_data)
+            sys.stdout.buffer.flush()
             pipe_queue.task_done()
 
 def main():
@@ -164,7 +165,7 @@ def main():
     try:
         setConfigurations()
     except Exception as e:
-        print(e)
+        print(e, file=sys.stderr)
         exit(CONFIG_ERROR)        
 
     points = ZONE_POINTS
