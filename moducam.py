@@ -4,6 +4,7 @@ import collections
 import threading
 import queue
 from datetime import datetime
+import sys
 import os
 import argparse
 import io
@@ -70,7 +71,7 @@ def compute_zone(points, width, height):
         if points[0] != points[-1]:
             points.append(points[0])
         if len(points) < 4:
-            print("ERROR: Zone cannot be defined by less than 3 points")
+            print("ERROR: Zone cannot be defined by less than 3 points", file=sys.stderr)
             exit(CONFIG_ERROR)
 
     ranges = []
@@ -97,8 +98,8 @@ def compute_zone(points, width, height):
                 intercepts.append(round(intercept))
 
         if len(intercepts) % 2 != 0:  # Should never happen
-            print("ERROR: Row has odd number of intercepts:")
-            print(intercepts)
+            print("ERROR: Row has odd number of intercepts:", file=sys.stderr)
+            print(intercepts, file=sys.stderr)
             exit(-1)
         
         intercepts.sort()
@@ -155,8 +156,8 @@ def write_to_pipe(path, pipe_queue):
             imageio.imwrite(img_stream, data, format='JPEG')
             image_data = img_stream.getvalue()
 
-            pipe.write(image_data)
-            pipe.flush()
+            sys.stdout.buffer.write(image_data)
+            sys.stdout.buffer.flush()
             pipe_queue.task_done()
 
 def main():
@@ -164,7 +165,7 @@ def main():
     try:
         setConfigurations()
     except Exception as e:
-        print(e)
+        print(e, file=sys.stderr)
         exit(CONFIG_ERROR)        
 
     points = ZONE_POINTS
@@ -175,6 +176,8 @@ def main():
     output = None
     out_stream = None
     base_timestamp = None  # Stores the first timestamp when alarm triggers
+    fake_timestamp = 0  # Made up timestamp to increment when one doesn't exist
+    ts_incr = (1 / 30) / in_stream.time_base # How much to increment fake ts
 
     alarm = False
     frames_since_thresh = 0
@@ -205,17 +208,25 @@ def main():
                     if not alarm:
                         alarm = True
                         # print("--- Writing to file")
+                        fake_timestamp = 0
                         output = av.open(getOutFileName(), 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
 
-                        # TODO: Fix timestamp 
-                        # First packet in buffer has pts=None and dts=None
-                        base_timestamp = buffer[0].pts if buffer[0].pts else 0
-                        # print(buffer)
+                        # base_timestamp = buffer[0].pts if len(buffer) and buffer[0].pts else 0
 
                         for p in buffer:
-                            if p.pts and p.dts:
+                            if base_timestamp is None:
+                                if p.pts:
+                                    base_timestamp = p.pts - fake_timestamp
+                                elif p.dts:
+                                    base_timestamp = p.pts - fake_timestamp
+                                else:
+                                    p.pts = fake_timestamp
+                                    p.dts = fake_timestamp
+                                    fake_timestamp += ts_incr
+                            if p.pts:
                                 p.pts -= base_timestamp
+                            if p.dts:
                                 p.dts -= base_timestamp
                             p.stream = out_stream
                             output.mux(p)
@@ -227,6 +238,7 @@ def main():
                         if frames_since_thresh > FRAMES_AFTER_ALARM and alarm:
                             alarm = False
                             # print("--- Closing file")
+                            fake_timestamp = 0
                             output.close()
                             base_timestamp = None 
 
@@ -236,8 +248,18 @@ def main():
                     pipe_queue.put(img_draw)
 
             if alarm:
-                if base_timestamp is not None:
+                if base_timestamp is None:
+                    if packet.pts:
+                        base_timestamp = packet.pts
+                    elif packet.dts:
+                        base_timestamp = packet.pts
+                    else:
+                        packet.dts = fake_timestamp
+                        packet.pts = fake_timestamp
+                        fake_timestamp += ts_incr
+                if packet.pts:
                     packet.pts -= base_timestamp
+                if packet.dts:
                     packet.dts -= base_timestamp
                 packet.stream = out_stream
                 output.mux(packet)
