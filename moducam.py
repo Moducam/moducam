@@ -176,6 +176,8 @@ def main():
     output = None
     out_stream = None
     base_timestamp = None  # Stores the first timestamp when alarm triggers
+    fake_timestamp = 0  # Made up timestamp to increment when one doesn't exist
+    ts_incr = (1 / 30) / in_stream.time_base # How much to increment fake ts
 
     alarm = False
     frames_since_thresh = 0
@@ -206,6 +208,7 @@ def main():
                     if not alarm:
                         alarm = True
                         # print("--- Writing to file")
+                        fake_timestamp = 0
                         output = av.open(getOutFileName(), 'w', format='mp4')
                         out_stream = output.add_stream(template=in_stream)
 
@@ -214,9 +217,13 @@ def main():
                         for p in buffer:
                             if base_timestamp is None:
                                 if p.pts:
-                                    base_timestamp = p.pts
+                                    base_timestamp = p.pts - fake_timestamp
                                 elif p.dts:
-                                    base_timestamp = p.pts
+                                    base_timestamp = p.pts - fake_timestamp
+                                else:
+                                    p.pts = fake_timestamp
+                                    p.dts = fake_timestamp
+                                    fake_timestamp += ts_incr
                             if p.pts:
                                 p.pts -= base_timestamp
                             if p.dts:
@@ -231,6 +238,7 @@ def main():
                         if frames_since_thresh > FRAMES_AFTER_ALARM and alarm:
                             alarm = False
                             # print("--- Closing file")
+                            fake_timestamp = 0
                             output.close()
                             base_timestamp = None 
 
@@ -243,8 +251,12 @@ def main():
                 if base_timestamp is None:
                     if packet.pts:
                         base_timestamp = packet.pts
-                    elif p.dts:
+                    elif packet.dts:
                         base_timestamp = packet.pts
+                    else:
+                        packet.dts = fake_timestamp
+                        packet.pts = fake_timestamp
+                        fake_timestamp += ts_incr
                 if packet.pts:
                     packet.pts -= base_timestamp
                 if packet.dts:
