@@ -191,6 +191,7 @@ def main():
         pipe_path = 'my_pipe'
         pipe_queue = queue.Queue()
         worker_thread = threading.Thread(target=write_to_pipe, args=(pipe_path, pipe_queue))
+        worker_thread.daemon = True
         worker_thread.start()
 
     try:
