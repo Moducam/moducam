@@ -186,7 +186,8 @@ def main():
     buffer = collections.deque()
 
     scan_ranges = compute_zone(points, in_stream.width, in_stream.height)
-
+    
+    framecount = 0
     if PIPE:
         pipe_path = 'my_pipe'
         pipe_queue = queue.Queue()
@@ -248,8 +249,8 @@ def main():
                             base_timestamp = None 
 
                 # print(count, "Alarm:", alarm)
-
-                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
+                framecount += 1
+                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE and framecount % 2 == 0:
                     pipe_queue.put(img_draw)
 
             if alarm:
