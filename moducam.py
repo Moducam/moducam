@@ -247,7 +247,7 @@ def main():
                         buffer.clear()
 
                         if RUN_ON_ALARM:
-                            subprocess.Popen(RUN_ON_ALARM)
+                            subprocess.Popen(RUN_ON_ALARM, stdout=subprocess.DEVNULL)
                     
                 else:
                     frames_since_thresh += 1
@@ -260,7 +260,7 @@ def main():
                             base_timestamp = None
                             
                             if RUN_ON_ALARM_END:
-                                subprocess.Popen(RUN_ON_ALARM_END)
+                                subprocess.Popen(RUN_ON_ALARM_END, stdout=subprocess.DEVNULL)
 
                 # print(count, "Alarm:", alarm)
                 framecount += 1
