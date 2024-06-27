@@ -9,6 +9,7 @@ import os
 import argparse
 import io
 import imageio
+import subprocess
 
 MAX_PIPE_QUEUE = 10
 CONFIG_ERROR = 5
@@ -46,7 +47,9 @@ def setConfigurations():
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
-    global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, ZONE_POINTS, FRAMES_AFTER_ALARM, BUFFER_SIZE
+    global CAMERA_PATH, NAME, PIXEL_THRESHOLD, ALARM_THRESHOLD, PIXEL_STEP, \
+        ZONE_POINTS, FRAMES_AFTER_ALARM, BUFFER_SIZE, \
+        RUN_ON_ALARM, RUN_ON_ALARM_END
 
     CAMERA_PATH = config['Camera']['camera_path']
     if CAMERA_PATH[0] == CAMERA_PATH[-1] == "\"":
@@ -59,6 +62,11 @@ def setConfigurations():
     ZONE_POINTS = list(eval(config['Zone']['zone_points']))
     FRAMES_AFTER_ALARM = int(config['VideoSettings']['frames_after_alarm'])
     BUFFER_SIZE = int(config['VideoSettings']['buffer_size'])
+
+    config_runonalarm = config['Scripts']['run_on_alarm']
+    config_runonalarmend = config['Scripts']['run_on_alarm_end']
+    RUN_ON_ALARM = list(eval(config_runonalarm)) if config_runonalarm else None
+    RUN_ON_ALARM_END = list(eval(config_runonalarmend)) if config_runonalarmend else None
 
 def grayscale(pxl):
     return 0.299*pxl[0] + 0.587*pxl[1] + 0.114*pxl[2]
@@ -166,7 +174,7 @@ def main():
         setConfigurations()
     except Exception as e:
         print(e, file=sys.stderr)
-        exit(CONFIG_ERROR)        
+        exit(CONFIG_ERROR)
 
     points = ZONE_POINTS
 
@@ -186,7 +194,8 @@ def main():
     buffer = collections.deque()
 
     scan_ranges = compute_zone(points, in_stream.width, in_stream.height)
-
+    
+    framecount = 0
     if PIPE:
         pipe_path = 'my_pipe'
         pipe_queue = queue.Queue()
@@ -236,6 +245,9 @@ def main():
                                 print(e, file=sys.stderr)
                                 exit(7)
                         buffer.clear()
+
+                        if RUN_ON_ALARM:
+                            subprocess.Popen(RUN_ON_ALARM, stdout=subprocess.DEVNULL)
                     
                 else:
                     frames_since_thresh += 1
@@ -245,11 +257,14 @@ def main():
                             # print("--- Closing file")
                             fake_timestamp = 0
                             output.close()
-                            base_timestamp = None 
+                            base_timestamp = None
+                            
+                            if RUN_ON_ALARM_END:
+                                subprocess.Popen(RUN_ON_ALARM_END, stdout=subprocess.DEVNULL)
 
                 # print(count, "Alarm:", alarm)
-
-                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE:
+                framecount += 1
+                if PIPE and pipe_queue.qsize() < MAX_PIPE_QUEUE and framecount % 2 == 0:
                     pipe_queue.put(img_draw)
 
             if alarm:
