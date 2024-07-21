@@ -178,7 +178,7 @@ def main():
 
     points = ZONE_POINTS
 
-    video = av.open(CAMERA_PATH, 'r', options={'rtsp_transport':'tcp'})
+    video = av.open(CAMERA_PATH, 'r', options={'rtsp_transport':'tcp'}, timeout=(10, 12))
     in_stream = video.streams.video[0]
 
     output = None
