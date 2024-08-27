@@ -18,14 +18,15 @@
       <video id="video-playback" controls src=""></video>
       <button id="button-prev" class="btn btn-primary">Prev</button>
       <button id="button-next" class="btn btn-primary">Next</button>
-      <p id="index"></p>
+      <p id="index" class="nospace"></p>
+      <input id="jumpIndex" name="jump_index" type="number" min="1" onchange="vidIndex=jumpIndex.value-1;setVideoSource();" />
       <script>
-        let vidlist = []
+        let vidlist = [];
         
         let vidName = new URL(window.location.href).searchParams.get("v");
         let vidIndex;
         
-        initialLoad()
+        initialLoad();
 
         document.getElementById("button-next").addEventListener('click', function() {
           if (vidIndex == vidlist.length-1) return;
@@ -57,6 +58,8 @@
           document.getElementById("video-playback").setAttribute("src", "videos/" + vidFilename);
           document.getElementById("file-name").innerHTML = vidFilename;
           document.getElementById("index").innerHTML = "Showing video " + (vidIndex+1) + " of " + vidlist.length;
+          document.getElementById("jumpIndex").value = vidIndex+1;
+          document.getElementById("jumpIndex").setAttribute("max", vidlist.length);
 
           if (nameChanged) {
             const newUrl = `${window.location.pathname}?v=${vidName}`;
