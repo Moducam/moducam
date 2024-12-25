@@ -220,7 +220,7 @@ def main():
                         # print("--- Writing to file")
                         fake_timestamp = 0
                         output = av.open(getOutFileName(), 'w', format='mp4')
-                        out_stream = output.add_stream(template=in_stream)
+                        out_stream = output.add_stream_from_template(in_stream)
 
                         # base_timestamp = buffer[0].pts if len(buffer) and buffer[0].pts else 0
 
